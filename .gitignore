@@ -16,19 +16,19 @@ ipch/
 *.VC.VC.opendb
 
 ## Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
+/[Dd]ebug/
+/[Dd]ebugPublic/
+/[Rr]elease/
+/[Rr]eleases/
+/x64/
+/x86/
+/[Aa][Rr][Mm]/
+/[Aa][Rr][Mm]64/
+/bld/
+/[Bb]in/
+/[Oo]bj/
+/[Ll]og/
+/[Ll]ogs/
 
 ## Visual C++ cache files
 *.ib_pdb_index
@@ -81,5 +81,9 @@ Icon
 ._*
 
 ## Application specific files
-*.dat
-*.exe 
+/[Bb]uild/**/*.dat
+/[Bb]uild/**/*.exe
+
+# Exclude Dependencies folder from ignore rules
+!Dependencies/
+!Dependencies/**
