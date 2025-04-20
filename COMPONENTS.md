@@ -5,16 +5,26 @@ This document outlines the main components of the ArtSpace project, providing a 
 ## Core Components
 
 - **Camera** (`camera.h`, `camera.cpp`): Handles the first-person camera system.
-- **Input System** (`input.h`, `input.cpp`): Manages keyboard and mouse input.
-- **Artwork** (`artwork.h`, `artwork.cpp`): Defines artwork objects that can be rotated and interacted with.
+- **Input System** (`input.h`, `input.cpp`): Manages keyboard input, mouse input, and motion functionalities such as dragging and snapping.
+
+- **Artwork** (`artwork.h`, `artwork.cpp`): Defines artwork objects that can be rotated and interacted with, and integrates puzzle logic within artwork-related functions.
+- **Puzzle System** (`puzzle.h`, `puzzle.cpp`): Provides reusable puzzle logic and win condition checking, utilized by the artwork system.
 - **Artwork Manager** (`artwork_manager.h`, `artwork_manager.cpp`): Manages the collection of artworks in the gallery.
+
 - **Room** (`room.h`, `room.cpp`): Defines the 3D room that contains the artworks.
-- **Texture Manager** (`texture_manager.h`, `texture_manager.cpp`): Handles loading and managing textures.
 - **Collision System** (`collision.h`, `collision.cpp`): Handles collision detection between the player and environment.
-- **Puzzle System** (`puzzle.h`, `puzzle.cpp`): Manages puzzle logic and win conditions.
-- **Game State** (`game_state.h`, `game_state.cpp`): Manages the overall game state.
+
+- **Game State** (`game_state.h`, `game_state.cpp`): Manages the overall game state, including details about the current game level.
+- **Configuration** (`config.h`, `config.cpp`): Centralized configuration settings, including parameters for different game levels.
 - **Main Application** (`main.cpp`): The main application class that ties everything together.
-- **Configuration** (`config.h`, `config.cpp`): Centralized configuration settings.
+
+- **Sound Manager** (`sound_manager.h`, `sound_manager.cpp`): Handles all sound effects and background music for the game.
+- **Texture Manager** (`texture_manager.h`, `texture_manager.cpp`): Handles loading and managing textures.
+
+- **Feedback System** (`feedback.h`, `feedback.cpp`): Manages visual and audio feedback elements such as progress bars, loading screens, win states, and lose states.
+- **Utility UI Components** (`utility.h`, `utility.cpp`): Provides reusable UI elements such as buttons, text boxes <timer>, typography, navigation and other interactive widgets.
+
+
 
 ### Centralized configuration settings.
 
@@ -41,10 +51,6 @@ private:
     
 public:
     static Config* getInstance();
-    
-    // Load/save
-    bool loadFromFile(const std::string& filename);
-    bool saveToFile(const std::string& filename);
     
     // Getters/Setters (for all properties)
     int getScreenWidth() const;
