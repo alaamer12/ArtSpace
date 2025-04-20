@@ -20,8 +20,34 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ArtSpace\main.cpp" />
+    <ClCompile Include="artwork.cpp" />
+    <ClCompile Include="artwork_manager.cpp" />
+    <ClCompile Include="camera.cpp" />
+    <ClCompile Include="collision.cpp" />
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="feedback.cpp" />
+    <ClCompile Include="game_state.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="puzzle.cpp" />
+    <ClCompile Include="room.cpp" />
     <ClCompile Include="sound_manager.cpp" />
     <ClCompile Include="sound_manager.h" />
+    <ClCompile Include="texture_manager.cpp" />
+    <ClCompile Include="utility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="artwork.h" />
+    <ClInclude Include="artwork_manager.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="collision.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="feedback.h" />
+    <ClInclude Include="game_state.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="puzzle.h" />
+    <ClInclude Include="room.h" />
+    <ClInclude Include="texture_manager.h" />
+    <ClInclude Include="utility.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
