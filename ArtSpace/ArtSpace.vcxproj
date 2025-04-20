@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ArtSpace\main.cpp" />
+    <ClCompile Include="sound_manager.cpp" />
+    <ClCompile Include="sound_manager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
