@@ -96,4 +96,4 @@ If this event fails, you may need to manually copy `freeglut.dll` from the appro
 
 - FreeGLUT
 - OpenGL
-- SFML (for sound)
+- SFML (for sound ONLY)
