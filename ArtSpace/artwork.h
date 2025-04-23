@@ -29,8 +29,4 @@ public:
     const float* getPosition() const;
     const float* getRotation() const;
     bool getIsSolved() const;
-    
-    // OpenGL specific
-    void bindTexture();
-    void unbindTexture();
 };

@@ -59,11 +59,3 @@ const float* Artwork::getRotation() const {
 bool Artwork::getIsSolved() const {
     return isSolved;
 }
-
-void Artwork::bindTexture()
-{
-}
-
-void Artwork::unbindTexture()
-{
-}

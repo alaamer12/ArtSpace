@@ -1,28 +1,47 @@
 #pragma once
-#include <SFML/Window.hpp>
+#include <GL/glut.h>
 
 class InputSystem {
 private:
     static InputSystem* instance;
     bool mouseButtonStates[3];  // Left, Right, Middle
+    bool keyStates[256];        // Regular keys
+    bool specialKeyStates[256]; // Special keys (arrow keys, function keys)
+    
     float lastMouseX, lastMouseY;
+    float currentMouseX, currentMouseY;
     bool isDragging;
+    bool isRotating;
 
     InputSystem();  // Private constructor for singleton
 
 public:
     static InputSystem* getInstance();
     
-    void update();
-    bool isKeyPressed(sf::Keyboard::Key key);
-    bool isMouseButtonPressed(sf::Mouse::Button button);
+    // GLUT callback registration
+    void registerCallbacks();
     
-    // Mouse handling
+    // Input handling methods (called by GLUT callbacks)
+    void handleKeyPress(unsigned char key, int x, int y);
+    void handleKeyRelease(unsigned char key, int x, int y);
+    void handleSpecialKeyPress(int key, int x, int y);
+    void handleSpecialKeyRelease(int key, int x, int y);
+    void handleMouseButton(int button, int state, int x, int y);
+    void handleMouseMotion(int x, int y);
+    void handlePassiveMouseMotion(int x, int y);
+    
+    // Update method to be called each frame
+    void update();
+    
+    // Query methods for input state
+    bool isKeyPressed(unsigned char key);
+    bool isSpecialKeyPressed(int key);
+    bool isMovementKeyPressed();
+    bool isMouseButtonPressed(int button);
+    
+    // Mouse position and movement
     void getMousePosition(float& x, float& y);
     void getMouseDelta(float& deltaX, float& deltaY);
     bool getIsDragging() const;
-    
-    // TODO: Add gesture recognition
-    // TODO: Add input mapping system
-    // TODO: Add input event callbacks
+    bool getIsRotating() const;
 };
