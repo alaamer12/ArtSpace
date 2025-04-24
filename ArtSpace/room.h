@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <GL/glut.h>
 
 class Room {
@@ -19,9 +20,4 @@ public:
     // Room customization
     void setWallTexture(const std::string& texturePath);
     void setFloorTexture(const std::string& texturePath);
-    
-    // OpenGL specific
-    void setupBuffers();
-    void bindWallTexture();
-    void bindFloorTexture();
 };

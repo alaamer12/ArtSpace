@@ -1,6 +1,8 @@
 #pragma once
 #include <GL/glut.h>
 #include <string>
+#include "utility.h" // For Image Rendering
+// Image image = new Image 
 
 class Artwork {
 private:
