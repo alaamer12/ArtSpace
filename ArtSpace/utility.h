@@ -1,12 +1,64 @@
+/**
+ * @file utility.h
+ * @brief Utility classes and UI components for ArtSpace application
+ * 
+ * This module provides various utility classes and UI components for creating interactive
+ * graphical applications with OpenGL/GLUT. It includes a logging system, text rendering,
+ * and a complete UI component hierarchy.
+ * 
+ * Main classes:
+ * - Logger: Singleton class for centralized application logging
+ * - UIComponent: Base class for all UI elements with common functionality
+ * - Image: Displays images with optional tinting and aspect ratio preservation
+ * - BorderBox: Container component that adds borders and background to other components
+ * - Button: Interactive button with hover and click states
+ * - TextBox: Text input component with editing capabilities
+ * - Timer: Component for displaying and tracking elapsed time
+ * 
+ * Usage examples:
+ * 
+ * 1. Using the Logger:
+ *    Logger& logger = Logger::getInstance();
+ *    logger.enableConsoleLogging(true);
+ *    logger.logInfo("Application started");
+ * 
+ * 2. Creating UI components:
+ *    Button* startButton = new Button("Start");
+ *    startButton->setPosition(100, 100);
+ *    startButton->setSize(120, 40);
+ *    startButton->setOnClick([]() { // handle click });
+ * 
+ * 3. Using a BorderBox as a container:
+ *    TextBox* inputBox = new TextBox("Enter text");
+ *    BorderBox* container = new BorderBox(inputBox);
+ *    container->setPosition(200, 150);
+ *    container->setBorderColor(0.2f, 0.5f, 0.8f);
+ * 
+ * 4. Creating a timer:
+ *    Timer* gameTimer = new Timer();
+ *    gameTimer->setPosition(10, 10);
+ *    gameTimer->start();
+ */
+
 #pragma once
 #include <GL/glut.h>
 #include <string>
 #include <vector>
 #include <functional>
 #include <fstream>
+#include <map>
 
-// Forward declarations
+// Forward declarations - don't include the full headers
 class Config;
+class Button;
+class TextBox;
+class Timer;
+class UIComponent;
+class ScreenManager;
+class Navigator;
+class MainScreenManager;
+class TimerScreenManager;
+class InputScreenManager;
 
 // TextAlignment enumeration for text rendering
 enum class TextAlignment {
@@ -94,6 +146,70 @@ public:
     const float* getPosition() const { return position; }
     const float* getSize() const { return size; }
     bool getVisible() const { return isVisible; }
+    
+    // Virtual event handlers
+    virtual bool handleKeyEvent(unsigned char key) { return false; }
+    virtual bool handleMouseMove(int x, int y) { return false; }
+};
+
+// Image component
+class Image : public UIComponent {
+private:
+    unsigned char* imageData;
+    int width;
+    int height;
+    int channels;
+    unsigned int textureId;
+    bool preserveAspectRatio;
+    float tint[4];  // RGBA tint color
+
+public:
+    Image(const std::string& imagePath);
+    ~Image() override;
+    
+    void render() override;
+    
+    bool loadImage(const std::string& imagePath);
+    void setTint(float r, float g, float b, float a = 1.0f);
+    void setPreserveAspectRatio(bool preserve);
+    
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+};
+
+// BorderBox component
+class BorderBox : public UIComponent {
+private:
+    UIComponent* content;
+    float borderWidth;
+    float borderColor[4];  // RGBA
+    float backgroundColor[4]; // RGBA
+    
+    // Helper method to update content position
+    void updateContentPosition();
+
+public:
+    BorderBox(UIComponent* component, float border = 2.0f, float pad = 5.0f);
+    ~BorderBox() override;
+    
+    void render() override;
+    void update(float deltaTime) override;
+    
+    void setContent(UIComponent* component);
+    UIComponent* getContent() const { return content; }
+    
+    void setBorderWidth(float width);
+    void setBorderColor(float r, float g, float b, float a = 1.0f);
+    void setBackgroundColor(float r, float g, float b, float a = 1.0f);
+    
+    // Override position and size setters to update the content position
+    void setPosition(float x, float y);
+    void setSize(float width, float height);
+    
+    // Event forwarding methods
+    bool handleMouseEvent(int button, int state, int x, int y);
+    bool handleKeyEvent(unsigned char key);
+    bool handleMouseMove(int x, int y);
 };
 
 // Button component
@@ -164,6 +280,9 @@ private:
     float currentTime;
     bool isRunning;
     float textColor[4];  // RGBA
+    
+    // Add private helper method to update time text
+    void updateTimeText();
 
 public:
     Timer();
@@ -176,188 +295,4 @@ public:
     void render() override;
     float getTime() const;
     void setTextColor(float r, float g, float b, float a = 1.0f);
-};
-
-// Screen navigator
-enum class Screen {
-    StartScreen,
-    Level1Screen,
-    GameStateScreen,
-    PauseScreen,
-    EndScreen
-};
-
-class Navigator {
-private:
-    Screen currentScreen;
-    std::vector<UIComponent*> screenComponents;
-
-public:
-    Navigator();
-    ~Navigator();
-    
-    void navigateTo(Screen screen);
-    Screen getCurrentScreen() const;
-    void addComponent(UIComponent* component);
-    void removeComponent(UIComponent* component);
-    void renderCurrentScreen();
-    void updateCurrentScreen(float deltaTime);
-    
-    bool handleMouseEvent(int button, int state, int x, int y);
-    bool handleKeyEvent(unsigned char key);
-    bool handleMouseMove(int x, int y);
-};
-
-/*
- * Usage Example:
- * 
- * Here's how to integrate these UI components in your main.cpp file:
- * 
- * // Global variables
- * Navigator* navigator = nullptr;
- * Button* startButton = nullptr;
- * Button* quitButton = nullptr;
- * TextBox* playerNameBox = nullptr;
- * Timer* gameTimer = nullptr;
- * float lastFrameTime = 0.0f;
- * 
- * // Setup UI components and navigation
- * void setupUI() {
- *     // Create the navigator
- *     navigator = new Navigator();
- * 
- *     // Create start screen components
- *     startButton = new Button("Start Game");
- *     startButton->setPosition(glutGet(GLUT_WINDOW_WIDTH) / 2 - 100, glutGet(GLUT_WINDOW_HEIGHT) / 2);
- *     startButton->setSize(200, 40);
- *     startButton->setBackgroundColor(0.1f, 0.4f, 0.8f);
- *     startButton->setHoverColor(0.2f, 0.5f, 0.9f);
- *     startButton->setOnClick([]() {
- *         // Switch to game screen
- *         navigator->navigateTo(Screen::Level1Screen);
- *         // Start the timer
- *         gameTimer->reset();
- *         gameTimer->start();
- *     });
- * 
- *     quitButton = new Button("Quit");
- *     quitButton->setPosition(glutGet(GLUT_WINDOW_WIDTH) / 2 - 100, glutGet(GLUT_WINDOW_HEIGHT) / 2 + 60);
- *     quitButton->setSize(200, 40);
- *     quitButton->setBackgroundColor(0.8f, 0.1f, 0.1f);
- *     quitButton->setHoverColor(0.9f, 0.2f, 0.2f);
- *     quitButton->setOnClick([]() {
- *         exit(0);
- *     });
- * 
- *     playerNameBox = new TextBox("", "Enter your name");
- *     playerNameBox->setPosition(glutGet(GLUT_WINDOW_WIDTH) / 2 - 150, glutGet(GLUT_WINDOW_HEIGHT) / 2 - 60);
- *     playerNameBox->setSize(300, 40);
- * 
- *     // Create game screen components
- *     gameTimer = new Timer();
- *     gameTimer->setPosition(glutGet(GLUT_WINDOW_WIDTH) - 100, 20);
- *     gameTimer->setTextColor(1.0f, 1.0f, 0.0f);  // Yellow
- *     
- *     // Add components to navigator
- *     navigator->addComponent(startButton);
- *     navigator->addComponent(quitButton);
- *     navigator->addComponent(playerNameBox);
- *     navigator->addComponent(gameTimer);
- * 
- *     // Set initial screen
- *     navigator->navigateTo(Screen::StartScreen);
- * }
- * 
- * // GLUT display callback
- * void display() {
- *     // Clear the screen
- *     glClear(GL_COLOR_BUFFER_BIT);
- *     
- *     // Set up orthographic projection for UI
- *     glMatrixMode(GL_PROJECTION);
- *     glLoadIdentity();
- *     glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
- *     
- *     glMatrixMode(GL_MODELVIEW);
- *     glLoadIdentity();
- *     
- *     // Calculate delta time for animations
- *     float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
- *     float deltaTime = currentTime - lastFrameTime;
- *     lastFrameTime = currentTime;
- *     
- *     // Show/hide components based on current screen
- *     Screen currentScreen = navigator->getCurrentScreen();
- *     startButton->setVisible(currentScreen == Screen::StartScreen);
- *     quitButton->setVisible(currentScreen == Screen::StartScreen);
- *     playerNameBox->setVisible(currentScreen == Screen::StartScreen);
- *     gameTimer->setVisible(currentScreen == Screen::Level1Screen);
- *     
- *     // Update and render UI components
- *     navigator->updateCurrentScreen(deltaTime);
- *     navigator->renderCurrentScreen();
- *     
- *     // Swap buffers
- *     glutSwapBuffers();
- * }
- * 
- * // GLUT mouse callback
- * void mouse(int button, int state, int x, int y) {
- *     navigator->handleMouseEvent(button, state, x, y);
- * }
- * 
- * // GLUT keyboard callback
- * void keyboard(unsigned char key, int x, int y) {
- *     // Handle ESC key globally
- *     if (key == 27) {
- *         exit(0);
- *     }
- *     
- *     // Let navigator handle other keys
- *     navigator->handleKeyEvent(key);
- * }
- * 
- * // GLUT mouse motion callback
- * void motion(int x, int y) {
- *     navigator->handleMouseMove(x, y);
- * }
- * 
- * // Main function
- * int main(int argc, char** argv) {
- *     // Initialize GLUT
- *     glutInit(&argc, argv);
- *     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
- *     glutInitWindowSize(800, 600);
- *     glutCreateWindow("ArtSpace");
- *     
- *     // Set up OpenGL state
- *     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
- *     glEnable(GL_BLEND);
- *     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
- *     
- *     // Set up UI
- *     setupUI();
- *     
- *     // Register GLUT callbacks
- *     glutDisplayFunc(display);
- *     glutIdleFunc(display);  // Call display continuously for animations
- *     glutMouseFunc(mouse);
- *     glutKeyboardFunc(keyboard);
- *     glutPassiveMotionFunc(motion);
- *     glutMotionFunc(motion);
- *     
- *     // Clean up on exit
- *     atexit([]() {
- *         delete navigator;
- *         // Note: navigator doesn't own components, so we need to delete them separately
- *         delete startButton;
- *         delete quitButton;
- *         delete playerNameBox;
- *         delete gameTimer;
- *     });
- *     
- *     // Start the main loop
- *     glutMainLoop();
- *     return 0;
- * }
- */
+}; 
