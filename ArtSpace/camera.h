@@ -1,3 +1,40 @@
+/**
+ * @file camera.h
+ * @brief Camera system with basic and human-like camera controls
+ * 
+ * This module provides camera classes for 3D OpenGL applications, offering both basic camera
+ * functionality and a more sophisticated human-like camera with realistic movement physics.
+ * The cameras handle position, rotation, and transformation in 3D space.
+ * 
+ * Main classes:
+ * - Camera: Base camera class with basic positioning and rotation
+ * - HumanCamera: Extended camera with realistic human movement, including head bobbing,
+ *                momentum, acceleration, and smooth turning
+ * 
+ * Usage examples:
+ * 
+ * 1. Using the base Camera:
+ *    Camera camera;
+ *    camera.setPosition(0.0f, 1.75f, 5.0f);
+ *    camera.setRotation(0.0f, 180.0f, 0.0f);
+ *    
+ *    // In render function:
+ *    camera.update(deltaTime);
+ *    camera.applyTransformation();
+ * 
+ * 2. Using the HumanCamera:
+ *    HumanCamera humanCamera;
+ *    humanCamera.setPosition(0.0f, 1.75f, 5.0f);
+ *    humanCamera.adjustSensitivity(0.5f); // Reduce sensitivity
+ *    
+ *    // In render function:
+ *    humanCamera.update(deltaTime);
+ *    humanCamera.applyTransformation();
+ *    
+ * The camera system works with the InputSystem to process mouse and keyboard input
+ * for camera movement and rotation.
+ */
+
 #pragma once
 #include <GL/glut.h>
 #include "input.h"
