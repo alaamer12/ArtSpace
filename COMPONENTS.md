@@ -17,12 +17,16 @@ This document outlines the main components of the ArtSpace project, providing a 
 - **Game State** (`game_state.h`, `game_state.cpp`): Manages the overall game state, including details about the current game level.
 - **Configuration** (`config.h`, `config.cpp`): Centralized configuration settings, including parameters for different game levels.
 - **Main Application** (`main.cpp`): The main application class that ties everything together.
+- **Game Manager** (`game_manager.h`, `game_manager.cpp`): Core manager class that coordinates all game systems, handles game loop and manages the overall game state.
 
 - **Sound Manager** (`sound_manager.h`, `sound_manager.cpp`): Handles all sound effects and background music for the game.
 - **Texture Manager** (`texture_manager.h`, `texture_manager.cpp`): Handles loading and managing textures.
+- **Utility UI Components** (`utility.h`, `utility.cpp`): Provides reusable UI elements such as buttons, text boxes, timer, typography and other interactive widgets.
 
-- **Feedback System** (`feedback.h`, `feedback.cpp`): Manages visual and audio feedback elements such as progress bars, loading screens, win states, and lose states.
-- **Utility UI Components** (`utility.h`, `utility.cpp`): Provides reusable UI elements such as buttons, text boxes <timer>, typography, navigation and other interactive widgets.
+- **Screen System** (`screens.h`): Defines the enum class for different screens/states in the game (e.g. MainScreen, GameScreen, SettingsScreen).
+- **Screen Manager** (`screen_manager.h`, `screen_manager.cpp`): Base interface class for managing individual screens, handling screen setup, resizing and cleanup.
+- **Navigator** (`navigator.h`, `navigator.cpp`): Manages navigation between different screens, handles screen transitions and maintains screen history.
+
 
 
 
