@@ -29,7 +29,7 @@ ipch/
 /[Oo]bj/
 /[Ll]og/
 /[Ll]ogs/
-
+ArtSpace/x64/*
 ## Visual C++ cache files
 *.ib_pdb_index
 *.idb
@@ -87,3 +87,4 @@ Icon
 # Exclude Dependencies folder from ignore rules
 !Dependencies/
 !Dependencies/**
+!ArtSpace/ArtSpace.vcxproj.filters

@@ -25,8 +25,6 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="config.cpp" />
-    <ClCompile Include="feedback.cpp" />
-    <ClCompile Include="game_state.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="puzzle.cpp" />
     <ClCompile Include="room.cpp" />
@@ -41,8 +39,6 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="feedback.h" />
-    <ClInclude Include="game_state.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="puzzle.h" />
     <ClInclude Include="room.h" />
