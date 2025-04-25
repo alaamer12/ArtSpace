@@ -16,9 +16,23 @@ ArtSpace is a C++ application that creates a 3D navigable art gallery with prope
 - Puzzle-solving mechanics through artwork manipulation
 - Win conditions when puzzles are solved correctly
 
+## Project Components
+
+For a detailed breakdown of the core modules and architecture, see the [COMPONENTS.md](./COMPONENTS.md) file.
+
+## Developer Guide
+
+For detailed information about the codebase architecture, component usage, and implementation best practices, see the [GUIDE.md](./GUIDE.md) file. The guide includes:
+
+- Architecture overview and application flow
+- Detailed component documentation
+- Best practices for extending the application
+- Implementation examples for common tasks
+- File structure and organization
+
 ## Prerequisites
 
-- Visual Studio 2019 or later
+- Visual Studio 2022 or later
 - Windows 10 or later
 
 ## Installation
@@ -37,6 +51,8 @@ ArtSpace is a C++ application that creates a 3D navigable art gallery with prope
 ## Setup Notes for Collaborators
 
 The project is configured to use the included FreeGLUT libraries in the `Dependencies` folder. When you clone the repository, Visual Studio should automatically recognize these paths as they are set up using relative paths in the project file.
+
+**Note:** To ensure SFML sound works correctly, make sure to select the **Release** configuration (not Debug) from the Solution Configuration dropdown at the top of Visual Studio before building and running. SFML audio may not function properly in Debug mode due to library/DLL differences.
 
 If you encounter any issues with missing libraries:
 
@@ -88,5 +104,6 @@ If this event fails, you may need to manually copy `freeglut.dll` from the appro
 
 ## Acknowledgments
 
-- FreeGLUT
-- OpenGL 
+- [FreeGLUT] (https://www.transmissionzero.co.uk/software/freeglut-devel/) for window management and OpenGL context creation
+- [OpenGL](https://www.opengl.org/) for rendering 2D and 3D graphics
+- [SFML](https://www.sfml-dev.org/) for sound and multimedia handling
