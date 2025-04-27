@@ -21,6 +21,10 @@ SoundManager::~SoundManager() {
 
 bool SoundManager::loadSound(const std::string& name, const std::string& filePath) {
     // TODO
+<<<<<<< Updated upstream
+=======
+    return 1;
+>>>>>>> Stashed changes
 }
 
 void SoundManager::unloadSound(const std::string& name) {
