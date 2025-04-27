@@ -1,17 +1,3 @@
-<<<<<<< Updated upstream
-#pragma once
-#include <string>
-#include <GL/glut.h>
-
-class Room {
-private:
-    float dimensions[3];  // width, height, depth
-    float* wallVertices;
-    float* wallTexCoords;
-    GLuint wallTextureId;
-    GLuint floorTextureId;
-
-=======
 #ifndef ROOM_H
 #define ROOM_H
 
@@ -20,20 +6,12 @@ private:
 #include <vector>
 
 class Room {
->>>>>>> Stashed changes
 public:
     Room(float width, float height, float depth);
     ~Room();
 
     void render();
     const float* getDimensions() const;
-<<<<<<< Updated upstream
-    
-    // Room customization
-    void setWallTexture(const std::string& texturePath);
-    void setFloorTexture(const std::string& texturePath);
-};
-=======
 
     // Texture management functions
     void setWallTexture(const std::string& texturePath);
@@ -66,4 +44,3 @@ private:
 };
 
 #endif // ROOM_H
->>>>>>> Stashed changes

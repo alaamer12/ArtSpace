@@ -1,13 +1,4 @@
 #include "room.h"
-<<<<<<< Updated upstream
-
-Room::Room(float width, float height, float depth) {
-    dimensions[0] = width;
-    dimensions[1] = height;
-    dimensions[2] = depth;
-
-    // TODO: Initialize wall vertices and texture coordinates
-=======
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -52,14 +43,11 @@ Room::Room(float width, float height, float depth) {
     generateCheckerboardTexture(doorTextureID, 0.5f, 0.35f, 0.05f);  // Dark wood
 
     // We don't need to allocate these as we're using the drawTexturedQuad helper
->>>>>>> Stashed changes
     wallVertices = nullptr;
     wallTexCoords = nullptr;
 }
 
 Room::~Room() {
-<<<<<<< Updated upstream
-=======
     // Delete textures
     if (wallTextureID != 0) glDeleteTextures(1, &wallTextureID);
     if (floorTextureID != 0) glDeleteTextures(1, &floorTextureID);
@@ -67,20 +55,11 @@ Room::~Room() {
     if (doorTextureID != 0) glDeleteTextures(1, &doorTextureID);
 
     // Free memory
->>>>>>> Stashed changes
     delete[] wallVertices;
     delete[] wallTexCoords;
 }
 
 void Room::render() {
-<<<<<<< Updated upstream
-    // TODO: Implement OpenGL room rendering
-    // TODO: Apply wall and floor textures
-    // TODO: Add lighting effects
-}
-
-const float* Room::getDimensions() const {
-=======
     // Enable texture mapping
     glEnable(GL_TEXTURE_2D);
     glColor3f(1.0f, 1.0f, 1.0f);  // Reset color to white for proper texture display
@@ -153,19 +132,10 @@ const float* Room::getDimensions() const {
     dimensions[0] = ROOM_WIDTH;
     dimensions[1] = ROOM_HEIGHT;
     dimensions[2] = ROOM_DEPTH;
->>>>>>> Stashed changes
     return dimensions;
 }
 
 void Room::setWallTexture(const std::string& texturePath) {
-<<<<<<< Updated upstream
-    // TODO: Load and apply wall texture
-}
-
-void Room::setFloorTexture(const std::string& texturePath) {
-    // TODO: Load and apply floor texture
-}
-=======
     // Delete old texture if it exists
     if (wallTextureID != 0) {
         glDeleteTextures(1, &wallTextureID);
@@ -348,4 +318,3 @@ void Room::drawTexturedQuad(float x1, float y1, float z1,
 
     glEnd();
 }
->>>>>>> Stashed changes
