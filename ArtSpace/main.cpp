@@ -1,243 +1,168 @@
 #include <GL/glut.h>
 #include <iostream>
-#include "utility.h"
+#include "camera.h"
+#include "room.h"
+#include "input.h"
 #include "config.h"
 
-// Global variables
-Image* realImage = nullptr;
-Image* invalidImage = nullptr;
-Image* noFallbackImage = nullptr;
-bool preserveAspectRatio = true;
-float tintR = 1.0f, tintG = 1.0f, tintB = 1.0f;
+HumanCamera* camera = nullptr;
+Room* room = nullptr;
+InputSystem* inputSystem = nullptr;
+float lastTime = 0;
 
-// Function prototypes
 void display();
 void reshape(int width, int height);
 void update();
 void keyboard(unsigned char key, int x, int y);
+void specialKeyboard(int key, int x, int y);
+void mouseMotion(int x, int y);
+void mouseButton(int button, int state, int x, int y);
+void idle();
 void cleanup();
+void initLighting();
 
-// Display callback function
 void display() {
-    // Clear the color buffer
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Set up 2D orthographic projection
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
+    glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // Enable alpha blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    camera->applyTransformation();
 
-    // Render our images
-    if (realImage) {
-        realImage->render();
-    }
-
-    if (invalidImage) {
-        invalidImage->render();
-    }
-
-    if (noFallbackImage) {
-        noFallbackImage->render();
-    }
-
-    // Swap buffers
+    room->render();
     glutSwapBuffers();
 }
 
-// Reshape callback function
 void reshape(int width, int height) {
-    // Update viewport
     glViewport(0, 0, width, height);
 
-    // Update image positions
-    if (realImage && invalidImage && noFallbackImage) {
-        float centerX = (width - realImage->getSize()[0]) / 2;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(60.0f, (float)width / (float)height, 0.1f, 100.0f);
 
-        // Position the images one above another with padding
-        float padding = 20.0f;
-        float totalHeight = realImage->getSize()[1] + invalidImage->getSize()[1] +
-            noFallbackImage->getSize()[1] + (2 * padding);
-
-        float currentY = (height - totalHeight) / 2 + totalHeight - realImage->getSize()[1];
-
-        // Top image (valid)
-        realImage->setPosition(centerX, currentY);
-
-        // Middle image (invalid with fallback)
-        currentY -= (invalidImage->getSize()[1] + padding);
-        invalidImage->setPosition(centerX, currentY);
-
-        // Bottom image (invalid without fallback)
-        currentY -= (noFallbackImage->getSize()[1] + padding);
-        noFallbackImage->setPosition(centerX, currentY);
-    }
+    Config::getInstance().setScreenWidth(width);
+    Config::getInstance().setScreenHeight(height);
 }
 
-// Update function for animation
+float getDeltaTime() {
+    float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    float deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+    if (deltaTime > 0.1f) deltaTime = 0.1f;
+    return deltaTime;
+}
+
+void idle() {
+    update();
+    glutPostRedisplay();
+}
+
 void update() {
-    // Nothing to update for now
-    glutPostRedisplay();
+    float deltaTime = getDeltaTime();
+    inputSystem->update();
+    camera->update(deltaTime);
+
+    const float* roomDimensions = room->getDimensions();
+    float roomWidth = roomDimensions[0];
+    float roomHeight = roomDimensions[1];
+    float roomDepth = roomDimensions[2];
+
+    float pos[3];
+    camera->getPosition(pos);
+
+    float wallOffset = 0.2f;
+    float floorOffset = 0.1f;
+
+    if (pos[0] < -roomWidth / 2 + wallOffset) pos[0] = -roomWidth / 2 + wallOffset;
+    if (pos[0] > roomWidth / 2 - wallOffset) pos[0] = roomWidth / 2 - wallOffset;
+    if (pos[2] < -roomDepth / 2 + wallOffset) pos[2] = -roomDepth / 2 + wallOffset;
+    if (pos[2] > roomDepth / 2 - wallOffset) pos[2] = roomDepth / 2 - wallOffset;
+    if (pos[1] < -roomHeight / 2 + 1.7f + floorOffset) pos[1] = -roomHeight / 2 + 1.7f + floorOffset;
+
+    camera->setPosition(pos[0], pos[1], pos[2]);
 }
 
-// Keyboard callback function
 void keyboard(unsigned char key, int x, int y) {
-    switch (key) {
-    case 27: // ESC key
-        cleanup();
-        exit(0);
-        break;
-
-    case 'a':
-    case 'A':
-        // Toggle aspect ratio preservation
-        preserveAspectRatio = !preserveAspectRatio;
-        if (realImage) {
-            realImage->setPreserveAspectRatio(preserveAspectRatio);
-        }
-        if (invalidImage) {
-            invalidImage->setPreserveAspectRatio(preserveAspectRatio);
-        }
-        if (noFallbackImage) {
-            noFallbackImage->setPreserveAspectRatio(preserveAspectRatio);
-        }
-        break;
-
-    case 'r':
-    case 'R':
-        // Adjust red tint
-        tintR = (tintR > 0.5f) ? 0.0f : 1.0f;
-        if (realImage) {
-            realImage->setTint(tintR, tintG, tintB);
-        }
-        break;
-
-    case 'g':
-    case 'G':
-        // Adjust green tint
-        tintG = (tintG > 0.5f) ? 0.0f : 1.0f;
-        if (realImage) {
-            realImage->setTint(tintR, tintG, tintB);
-        }
-        break;
-
-    case 'b':
-    case 'B':
-        // Adjust blue tint
-        tintB = (tintB > 0.5f) ? 0.0f : 1.0f;
-        if (realImage) {
-            realImage->setTint(tintR, tintG, tintB);
-        }
-        break;
-    }
-
-    glutPostRedisplay();
 }
 
-// Cleanup function
+void keyboardUp(unsigned char key, int x, int y) {
+    inputSystem->handleKeyRelease(key, x, y);
+}
+
+void specialKeyboard(int key, int x, int y) {
+}
+
+void specialKeyboardUp(int key, int x, int y) {
+}
+
+void mouseMotion(int x, int y) {
+    inputSystem->handleMouseMotion(x, y);
+}
+
+void mouseButton(int button, int state, int x, int y) {
+
+}
+
+void initLighting() {
+}
+
 void cleanup() {
-    if (realImage) {
-        delete realImage;
-        realImage = nullptr;
+    if (camera) {
+        delete camera;
+        camera = nullptr;
     }
 
-    if (invalidImage) {
-        delete invalidImage;
-        invalidImage = nullptr;
-    }
-
-    if (noFallbackImage) {
-        delete noFallbackImage;
-        noFallbackImage = nullptr;
+    if (room) {
+        delete room;
+        room = nullptr;
     }
 }
 
 int main(int argc, char** argv) {
-    // Initialize logger
-    Logger& logger = Logger::getInstance();
-    logger.enableConsoleLogging(true);
-    logger.logInfo("ArtSpace Image Demo starting...");
-
-    // Initialize GLUT
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-    // Get screen size from config
     Config& config = Config::getInstance();
     int width = config.getScreenWidth();
     int height = config.getScreenHeight();
 
-    // Create the window
     glutInitWindowSize(width, height);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("ArtSpace Image Demo");
+    glutCreateWindow("ArtSpace - Room & Camera Demo");
 
-    // Set up callbacks
+    inputSystem = InputSystem::getInstance();
+    inputSystem->registerCallbacks();
+
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard);
-    glutIdleFunc(update);
+    glutIdleFunc(idle);
 
-    // Load valid image - replace with a real path to a valid image on your system
-    // If the image doesn't exist, it'll use the default fallback color (white)
-    std::string validImagePath = "E:\\Projects\\Games\\ArtSpace\\ArtSpace\\assets\\pictures\\StarScream.jpg";
-    realImage = new Image(validImagePath);
-    if (!realImage) {
-        logger.logError("Failed to create valid image");
-        return 1;
-    }
+    glEnable(GL_DEPTH_TEST);
+    initLighting();
 
-    // If the image doesn't exist, adjust size to have something visible
-    if (!realImage->isImageLoaded()) {
-        logger.logWarning("Using fallback for supposedly valid image");
-    }
+    room = new Room(10.0f, 5.0f, 10.0f);
 
-    // Configure valid image
-    realImage->setSize(300, 200);
-    realImage->setPreserveAspectRatio(preserveAspectRatio);
-    realImage->setTint(tintR, tintG, tintB);
+    std::string texturePath = "E:\\Projects\\Games\\ArtSpace\\ArtSpace\\assets\\textures\\floor.bmp";
+    room->setWallTexture(texturePath);
+    room->setFloorTexture(texturePath);
+    room->setRoofTexture(texturePath);
 
-    // Create invalid image with red fallback
-    invalidImage = new Image("nonexistent_image.png", "#ff0000");
-    if (!invalidImage) {
-        logger.logError("Failed to create invalid image with fallback");
-        return 1;
-    }
+    camera = new HumanCamera();
+    camera->setPosition(0.0f, 0.0f, 3.0f);
 
-    // Configure invalid image with fallback
-    invalidImage->setSize(300, 200);
-    invalidImage->setPreserveAspectRatio(preserveAspectRatio);
+    glutWarpPointer(width / 2, height / 2);
 
-    // Create invalid image with no fallback - should result in an error message
-    // but we'll still create the object to demonstrate what happens
-    try {
-        noFallbackImage = new Image("another_nonexistent_image.png", "");
-        if (noFallbackImage) {
-            // Configure it just in case it was created despite the error
-            noFallbackImage->setSize(300, 200);
-            noFallbackImage->setPreserveAspectRatio(preserveAspectRatio);
-            noFallbackImage->setVisible(false); // Hide it since it shouldn't render anything
-        }
-    }
-    catch (...) {
-        logger.logError("Exception creating image without fallback");
-        noFallbackImage = nullptr;
-    }
+    std::cout << "ArtSpace Room & Camera Demo" << std::endl;
+    std::cout << "Controls:" << std::endl;
+    std::cout << "  WASD - Move" << std::endl;
+    std::cout << "  Mouse - Look around" << std::endl;
+    std::cout << "  F - Toggle wireframe mode" << std::endl;
+    std::cout << "  +/- - Adjust mouse sensitivity" << std::endl;
+    std::cout << "  ESC - Exit" << std::endl;
 
-    reshape(width, height);
-
-    logger.logInfo("Images created and configured");
-
-    // Start the main loop
+    lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
     glutMainLoop();
-
     cleanup();
     return 0;
 }
