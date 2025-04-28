@@ -22,6 +22,9 @@ SoundManager::~SoundManager() {
 bool SoundManager::loadSound(const std::string& name, const std::string& filePath) {
     // TODO
     return 1;
+
+    return 1;
+
 }
 
 void SoundManager::unloadSound(const std::string& name) {
