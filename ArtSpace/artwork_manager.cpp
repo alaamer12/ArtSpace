@@ -18,9 +18,7 @@ ArtworkManager::~ArtworkManager() {
 }
 
 Artwork* ArtworkManager::createArtwork(const std::string& texturePath, float x, float y, float z) {
-    Artwork* artwork = new Artwork(texturePath, x, y, z);
-    artworks.push_back(artwork);
-    return artwork;
+    return 0;
 }
 
 void ArtworkManager::removeArtwork(Artwork* artwork) {
@@ -42,7 +40,7 @@ void ArtworkManager::renderAll() {
 
 void ArtworkManager::updateAll(float deltaTime) {
     for (auto artwork : artworks) {
-        artwork->update(deltaTime);
+       // artwork->update(deltaTime);
     }
 }
 

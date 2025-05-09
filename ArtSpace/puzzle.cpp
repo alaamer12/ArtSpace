@@ -25,9 +25,7 @@ bool PuzzleSystem::checkCompletion() {
 
     int solvedCount = 0;
     for (const auto& artwork : puzzleArtworks) {
-        if (artwork->getIsSolved()) {
-            solvedCount++;
-        }
+       
     }
 
     completionProgress = static_cast<float>(solvedCount) / puzzleArtworks.size();
