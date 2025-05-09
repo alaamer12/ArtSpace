@@ -35,6 +35,7 @@
     <ClInclude Include="artwork_manager.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="game_manager.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="lever.h" />
     <ClInclude Include="navigator.h" />
