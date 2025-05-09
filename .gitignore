@@ -88,3 +88,7 @@ Icon
 !Dependencies/
 !Dependencies/**
 !ArtSpace/ArtSpace.vcxproj.filters
+
+**/ArtSpace/x64/**
+**/ArtSpace/x64/Release/**
+**/ArtSpace/x64/Debug/**
