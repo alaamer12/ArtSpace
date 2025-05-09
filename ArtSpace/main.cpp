@@ -46,13 +46,18 @@ void idle() {
 void keyboard(unsigned char key, int x, int y) {
     if (key == 27) { // ESC key
         cleanup();
+        cleanup();
         exit(0);
     }
     
     // Forward to game manager
     GameManager::getInstance()->handleKeyPress(key, x, y);
+    
+    // Forward to game manager
+    GameManager::getInstance()->handleKeyPress(key, x, y);
 }
 
+// Keyboard up callback function - called when a key is released
 void keyboardUp(unsigned char key, int x, int y) {
     GameManager::getInstance()->handleKeyRelease(key, x, y);
 }
@@ -106,6 +111,9 @@ int main(int argc, char** argv) {
     glutMotionFunc(mouseMotion);
     glutPassiveMotionFunc(mouseMotion);
     glutMouseFunc(mouseButton);
+    glutMotionFunc(mouseMotion);
+    glutPassiveMotionFunc(mouseMotion);
+    glutMouseFunc(mouseButton);
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -116,7 +124,9 @@ int main(int argc, char** argv) {
 
     glutMainLoop();
     
+    // Clean up resources
     cleanup();
+    
     
     return 0;
 }

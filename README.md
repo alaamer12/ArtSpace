@@ -1,8 +1,10 @@
 # ArtSpace
 
+# ArtSpace - For Decepticons, with love to Megatron
+
 An interactive 3D art gallery with puzzle elements. Users can navigate a virtual exhibition space, manipulate artworks, and solve puzzles by properly aligning art frames to their correct orientation.
 
-![Art Gallery Screenshot](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/assets/pictures/screenshots/screen1.PNG)
+![Art Gallery Screenshot](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/ArtSpace/assets/pictures/screenshots/screen1.PNG)
 
 ## Project Description
 
@@ -10,8 +12,7 @@ ArtSpace is a C++ application that creates a 3D navigable art gallery with prope
 
 Each artwork is positioned strategically throughout the gallery, and the user must correctly align all artworks to a vertical orientation (0 degrees) to win the game. This combines exploration with puzzle-solving in an immersive 3D environment.
 
-![Artwork Interaction](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/assets/pictures/screenshots/screen2.PNG)
-
+![Artwork Interaction](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/ArtSpace/assets/pictures/screenshots/screen2.PNG)
 ## Features
 
 - First-person navigation with WASD movement and mouse look camera
