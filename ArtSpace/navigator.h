@@ -4,12 +4,15 @@
 #include "screen_manager.h"
 #include "screens.h"
 
+// Function type for screen change callback
+typedef void (*ScreenChangeCallback)(Screen previousScreen, Screen newScreen);
 
 // Navigator class to manage screens and transitions
 class Navigator {
 private:
     Screen currentScreen;
     std::map<Screen, ScreenManager*> screens;
+    ScreenChangeCallback onScreenChangeCallback;
 
 public:
     Navigator();
@@ -41,4 +44,7 @@ public:
     
     // Add component to current screen
     void addComponent(UIComponent* component);
+    
+    // Set callback for screen changes
+    void setOnScreenChangeCallback(ScreenChangeCallback callback);
 }; 

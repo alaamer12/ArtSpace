@@ -4,7 +4,7 @@
 
 
 Navigator::Navigator()
-    : currentScreen(Screen::StartScreen) {
+    : currentScreen(Screen::StartScreen), onScreenChangeCallback(nullptr) {
 }
 
 Navigator::~Navigator() {
@@ -16,6 +16,9 @@ Navigator::~Navigator() {
 }
 
 void Navigator::navigateTo(Screen screen) {
+    // Store the previous screen for the callback
+    Screen previousScreen = currentScreen;
+    
     // First hide the current screen
     ScreenManager* currentManager = getScreenManager(currentScreen);
     if (currentManager) {
@@ -29,6 +32,11 @@ void Navigator::navigateTo(Screen screen) {
     ScreenManager* newManager = getScreenManager(currentScreen);
     if (newManager) {
         newManager->showScreen();
+    }
+    
+    // Call the screen change callback if it exists
+    if (onScreenChangeCallback) {
+        onScreenChangeCallback(previousScreen, currentScreen);
     }
 }
 
@@ -115,4 +123,8 @@ void Navigator::addComponent(UIComponent* component) {
     if (manager && component) {
         manager->addComponent(component);
     }
+}
+
+void Navigator::setOnScreenChangeCallback(ScreenChangeCallback callback) {
+    onScreenChangeCallback = callback;
 } 

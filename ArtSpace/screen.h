@@ -9,7 +9,7 @@
 #include "camera.h"
 
 // Global variables
-Navigator* navigator = nullptr;
+//Navigator* navigator = nullptr;
 int windowWidth = 800;
 int windowHeight = 600;
 
@@ -87,27 +87,18 @@ private:
     bool initialized;
 
 public:
-    Level1ScreenManager() : ScreenManager(Screen::Level1Screen), gameTimer(nullptr), room(nullptr), camera(nullptr), initialized(false) {}
+  Level1ScreenManager(Timer* gameTimer, Room* room, HumanCamera* camera)
+        : ScreenManager(Screen::Level1Screen),
+          gameTimer(gameTimer), room(room), camera(camera),
+          initialized(false) {}
 
     ~Level1ScreenManager() {
-        // Clean up resources
-        if (room) {
-            delete room;
-            room = nullptr;
-        }
-        if (camera) {
-            delete camera;
-            camera = nullptr;
-        }
-        if (gameTimer) {
-            delete gameTimer;
-            gameTimer = nullptr;
-        }
+        // Do NOT delete them
     }
 
     void setupScreen(Navigator* nav) {
         // Create a timer for the game
-        gameTimer = new Timer();
+        
         gameTimer->setPosition(10, windowHeight - 40);
         gameTimer->setSize(150, 30);
         gameTimer->setTextColor(0.8f, 0.8f, 0.8f, 1.0f);
