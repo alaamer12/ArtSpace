@@ -1,28 +1,47 @@
 # ArtSpace
 
-An interactive 3D art gallery with puzzle elements. Users can navigate a virtual exhibition space, manipulate artworks, and solve puzzles by rotating frames in specific patterns.
+An interactive 3D art gallery with puzzle elements. Users can navigate a virtual exhibition space, manipulate artworks, and solve puzzles by properly aligning art frames to their correct orientation.
+
+![Art Gallery Screenshot](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/assets/pictures/screenshots/screen1.PNG)
 
 ## Project Description
 
-ArtSpace is a C++ application that creates a 3D navigable art gallery with proper lighting and interactive elements. Users move around in a first-person perspective, interact with artwork on the walls, and solve puzzles by rotating the frames in specific sequences or orientations.
+ArtSpace is a C++ application that creates a 3D navigable art gallery with proper lighting and interactive elements. Users move around in a first-person perspective, interact with artwork on the walls, and solve puzzles by rotating the frames to their correct orientations. The game features realistic artwork display with customizable frames, rotation mechanics, and proximity-based interaction.
+
+Each artwork is positioned strategically throughout the gallery, and the user must correctly align all artworks to a vertical orientation (0 degrees) to win the game. This combines exploration with puzzle-solving in an immersive 3D environment.
+
+![Artwork Interaction](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/assets/pictures/screenshots/screen2.PNG)
 
 ## Features
 
-- First-person navigation (WASD + mouse look)
-- 3D room with textured walls, floor, and ceiling
-- Realistic lighting system with multiple light sources
-- Interactive artwork frames that can be rotated
-- Collision detection with walls and objects
-- Puzzle-solving mechanics through artwork manipulation
-- Win conditions when puzzles are solved correctly
+- First-person navigation with WASD movement and mouse look camera
+- 3D gallery room with textured walls, floor, and ceiling
+- Custom artwork loading system with separate image and frame textures
+- Interactive artworks with rotation capabilities
+- Proximity detection system that identifies the closest artwork to the player
+- Artwork manipulation: rotation, frame stretching, and image stretching
+- Custom artwork configurations with randomized initial rotations
+- Win condition system that detects when all artworks are properly aligned
+- Collision detection to prevent walking through walls
+- Detailed console feedback and in-game status information
+- Customizable artwork appearance with independent frame and image stretching
+
+## Technology Stack
+
+- C++ for core game logic and mechanics
+- OpenGL for 3D rendering and texture mapping
+- FreeGLUT for window management and user input
+- Custom-built artwork rendering system
+- Singleton pattern for key systems (input, game management, etc.)
+- Vector mathematics for camera movement and rotation
 
 ## Project Components
 
-For a detailed breakdown of the core modules and architecture, see the [COMPONENTS.md](./COMPONENTS.md) file.
+For a detailed breakdown of the core modules and architecture, see the [COMPONENTS](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/COMPONENTS.md) file.
 
 ## Developer Guide
 
-For detailed information about the codebase architecture, component usage, and implementation best practices, see the [GUIDE.md](./GUIDE.md) file. The guide includes:
+For detailed information about the codebase architecture, component usage, and implementation best practices, see the [GUIDE.md](https://raw.githubusercontent.com/alaamer12/ArtSpace/main/GUIDE.md) file. The guide includes:
 
 - Architecture overview and application flow
 - Detailed component documentation
@@ -34,6 +53,7 @@ For detailed information about the codebase architecture, component usage, and i
 
 - Visual Studio 2022 or later
 - Windows 10 or later
+- OpenGL and FreeGLUT libraries (included in the dependencies folder)
 
 ## Installation
 
@@ -77,33 +97,54 @@ If this event fails, you may need to manually copy `freeglut.dll` from the appro
 
 - **W/A/S/D**: Move forward/left/backward/right
 - **Mouse**: Look around
-- **E**: Interact with artwork (when close enough)
-- **← →**: Rotate selected artwork
-- **Enter**: Confirm artwork position
-- **P**: Pause
+- **F**: Toggle wireframe mode
+- **+/-**: Adjust mouse sensitivity
 - **ESC**: Exit application
 
-## Development Roadmap
+### Artwork Manipulation
+- **k**: Rotate closest artwork counterclockwise by 15 degrees
+- **l**: Rotate closest artwork clockwise by 15 degrees
+- **x/X**: Increase/decrease image width of closest artwork
+- **y/Y**: Increase/decrease image height of closest artwork
+- **f/F**: Increase/decrease frame width of closest artwork
+- **g/G**: Increase/decrease frame height of closest artwork
+- **r/R**: Reset image/frame stretching of closest artwork
+- **p**: Toggle detailed proximity debugging information
 
-1. **Core Navigation & Room** - Complete ✓
-2. **Artwork Implementation**
-   - Create frames and artwork display system
-   - Load textures for artwork
-   - Position frames on walls
-3. **Interaction System**
-   - Ray casting for selection
-   - Rotation mechanics for frames
-   - Visual feedback for selected items
-4. **Collision System**
-   - Wall and object collision
-   - Proper physics for movement
-5. **Puzzle Mechanics**
-   - Define correct orientations
-   - Implement win conditions
-   - Add feedback and rewards
+## Gameplay
+
+The objective of ArtSpace is to navigate the gallery and rotate all artworks to their proper vertical orientation (0 degrees). When you approach an artwork, the console will display which artwork is closest to you. You must be within 25 units of an artwork to interact with it.
+
+Use the 'k' and 'l' keys to rotate the closest artwork counterclockwise or clockwise in 15-degree increments. When all artworks are properly aligned at 0 degrees, you win the game!
+
+Each artwork starts with a random rotation (in 15-degree increments), so you'll need to carefully navigate the gallery and align each piece. The game provides feedback on your current distance from artworks and their current rotation angles.
+
+## Development Status
+
+ArtSpace has successfully implemented all core features:
+
+- ✅ 3D Navigation & Camera System
+- ✅ Gallery Environment with Textured Walls
+- ✅ Artwork Loading and Display
+- ✅ Proximity Detection for Artworks
+- ✅ Artwork Rotation Mechanics
+- ✅ Win Condition Logic
+- ✅ Customizable Artwork Appearance
+- ✅ Collision Detection
+
+## Future Enhancements
+
+- Additional gallery rooms and layouts
+- More diverse artwork collections
+- Advanced lighting effects
+- Puzzle complexity with specific rotation patterns
+- Audio feedback and ambient music
+- Interactive tutorial system
+- Saving/loading game state
 
 ## Acknowledgments
 
-- [FreeGLUT] (https://www.transmissionzero.co.uk/software/freeglut-devel/) for window management and OpenGL context creation
+- [FreeGLUT](https://www.transmissionzero.co.uk/software/freeglut-devel/) for window management and OpenGL context creation
 - [OpenGL](https://www.opengl.org/) for rendering 2D and 3D graphics
 - [SFML](https://www.sfml-dev.org/) for sound and multimedia handling
+- All art assets used with appropriate permissions
