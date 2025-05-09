@@ -28,7 +28,6 @@
     <ClCompile Include="navigator.cpp" />
     <ClCompile Include="room.cpp" />
     <ClCompile Include="screen_manager.cpp" />
-    <ClCompile Include="texture_manager.cpp" />
     <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -43,7 +42,6 @@
     <ClInclude Include="screen.h" />
     <ClInclude Include="screens.h" />
     <ClInclude Include="screen_manager.h" />
-    <ClInclude Include="texture_manager.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

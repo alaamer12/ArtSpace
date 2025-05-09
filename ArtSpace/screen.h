@@ -1,20 +1,20 @@
 #pragma once
 #include <GL/glut.h>
+#include <cstdlib>  // For exit() function
 #include "utility.h"
 #include "navigator.h"
 #include "screen_manager.h"
 #include "screens.h"
+#include "room.h"
+#include "camera.h"
 
 // Global variables
 Navigator* navigator = nullptr;
 int windowWidth = 800;
 int windowHeight = 600;
-float lastTime = 0;
 
 class StartScreenManager;
 class Level1ScreenManager;
-class GameStateScreenManager;
-class PauseScreenManager;
 class EndScreenManager;
 
 // StartScreenManager class
@@ -23,46 +23,57 @@ public:
     StartScreenManager() : ScreenManager(Screen::StartScreen) {}
 
     void setupScreen(Navigator* nav) {
-        // Create a title
-        TextBox* title = new TextBox("ART SPACE DEMO", "");
-        title->setEditable(false);
-        title->setPosition(windowWidth / 2 - 100, windowHeight - 100);
-        title->setSize(200, 40);
-        title->setTextColor(1.0f, 1.0f, 1.0f);
-        title->setBackgroundColor(0.2f, 0.2f, 0.4f);
-        addComponent(title);
+        // Add a welcome message
+        TextBox* welcomeText = new TextBox("Welcome to Artspace", "");
+        welcomeText->setEditable(false);
+        welcomeText->setPosition(windowWidth / 2 - 150, windowHeight / 2 + 50); // Centered-ish
+        welcomeText->setSize(300, 50);
+        welcomeText->setTextColor(0.9f, 0.9f, 0.9f); // Light text
+        welcomeText->setBackgroundColor(0.1f, 0.1f, 0.1f, 0.0f); // Transparent background
+        addComponent(welcomeText);
 
-        // Create a start button
-        Button* startButton = new Button("Start Game");
-        startButton->setPosition(windowWidth / 2 - 75, windowHeight / 2);
+        // Add a Start button
+        Button* startButton = new Button("Start");
+        startButton->setPosition(windowWidth / 2 - 75, windowHeight / 2 - 25); // Below welcome
         startButton->setSize(150, 50);
         startButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::Level1Screen);
-            });
+            if (nav) {
+                nav->navigateTo(Screen::Level1Screen);
+            }
+        });
         addComponent(startButton);
 
-        // Create an exit button
+        // Add an Exit button
         Button* exitButton = new Button("Exit");
-        exitButton->setPosition(windowWidth / 2 - 75, windowHeight / 2 - 70);
+        exitButton->setPosition(windowWidth / 2 - 75, windowHeight / 2 - 100); // Below start
         exitButton->setSize(150, 50);
-        exitButton->setBackgroundColor(0.7f, 0.3f, 0.3f);
+        exitButton->setBackgroundColor(0.7f, 0.3f, 0.3f); // Reddish color
         exitButton->setOnClick([]() {
-            exit(0);
-            });
+            // Add a log message before exiting
+            Logger::getInstance().logInfo("Exit button clicked. Closing application.");
+            exit(0); // Standard C exit function - works everywhere
+        });
         addComponent(exitButton);
     }
 
     void resizeScreen(int width, int height) override {
-        // Update positions when window is resized
-        if (!getComponents().empty()) {
-            // Update title position
-            getComponents()[0]->setPosition(width / 2 - 100, height - 100);
+        // Update window dimensions
+        windowWidth = width;
+        windowHeight = height;
 
-            // Update start button position
-            getComponents()[1]->setPosition(width / 2 - 75, height / 2);
+        // Recalculate positions of components if they exist
+        if (getComponents().size() >= 3) { // Ensure all components are added
+            // Welcome Text
+            getComponents()[0]->setPosition(width / 2 - 150, height / 2 + 50);
+            getComponents()[0]->setSize(300, 50);
 
-            // Update exit button position
-            getComponents()[2]->setPosition(width / 2 - 75, height / 2 - 70);
+            // Start Button
+            getComponents()[1]->setPosition(width / 2 - 75, height / 2 - 25);
+            getComponents()[1]->setSize(150, 50);
+
+            // Exit Button
+            getComponents()[2]->setPosition(width / 2 - 75, height / 2 - 100);
+            getComponents()[2]->setSize(150, 50);
         }
     }
 };
@@ -71,175 +82,131 @@ public:
 class Level1ScreenManager : public ScreenManager {
 private:
     Timer* gameTimer;
+    Room* room;
+    HumanCamera* camera;
+    bool initialized;
 
 public:
-    Level1ScreenManager() : ScreenManager(Screen::Level1Screen), gameTimer(nullptr) {}
+    Level1ScreenManager() : ScreenManager(Screen::Level1Screen), gameTimer(nullptr), room(nullptr), camera(nullptr), initialized(false) {}
+
+    ~Level1ScreenManager() {
+        // Clean up resources
+        if (room) {
+            delete room;
+            room = nullptr;
+        }
+        if (camera) {
+            delete camera;
+            camera = nullptr;
+        }
+        if (gameTimer) {
+            delete gameTimer;
+            gameTimer = nullptr;
+        }
+    }
 
     void setupScreen(Navigator* nav) {
-        // Create a timer
+        // Create a timer for the game
         gameTimer = new Timer();
-        gameTimer->setPosition(windowWidth / 2 - 50, windowHeight - 50);
-        gameTimer->setSize(100, 30);
-        gameTimer->start(); // Auto-start the timer
+        gameTimer->setPosition(10, windowHeight - 40);
+        gameTimer->setSize(150, 30);
+        gameTimer->setTextColor(0.8f, 0.8f, 0.8f, 1.0f);
         addComponent(gameTimer);
 
-        // Create a pause button
-        Button* pauseButton = new Button("Pause");
-        pauseButton->setPosition(20, windowHeight - 50);
-        pauseButton->setSize(80, 30);
-        pauseButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::PauseScreen);
-            });
-        addComponent(pauseButton);
-
-        // Create a status button
-        Button* statusButton = new Button("Status");
-        statusButton->setPosition(windowWidth - 100, windowHeight - 50);
-        statusButton->setSize(80, 30);
-        statusButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::GameStateScreen);
-            });
-        addComponent(statusButton);
-
-        // Create a game over button (simulating game end)
-        Button* gameOverButton = new Button("Game Over");
-        gameOverButton->setPosition(windowWidth / 2 - 75, 50);
-        gameOverButton->setSize(150, 40);
-        gameOverButton->setBackgroundColor(0.7f, 0.3f, 0.3f);
-        gameOverButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::EndScreen);
-            });
-        addComponent(gameOverButton);
+        // Initialize room and camera (will be done in showScreen)
+        initialized = false;
     }
 
     void showScreen() override {
         ScreenManager::showScreen();
-        if (gameTimer) {
-            gameTimer->start(); // Resume timer when screen becomes active
+        
+        if (!initialized) {
+            // Only create room and camera once
+            // Create the room
+            room = new Room(10.0f, 5.0f, 10.0f);
+
+            // Use a relative path for textures
+            std::string texturePath = "assets/textures/floor.bmp";
+            room->setWallTexture(texturePath);
+            room->setFloorTexture(texturePath);
+            room->setRoofTexture(texturePath);
+
+            // Create the camera
+            camera = new HumanCamera();
+            camera->setPosition(0.0f, 0.0f, 3.0f);
+
+            // Center the mouse cursor
+            glutWarpPointer(windowWidth / 2, windowHeight / 2);
+            
+            // Start the timer
+            if (gameTimer) {
+                gameTimer->reset();
+                gameTimer->start();
+            }
+            
+            initialized = true;
         }
     }
 
     void hideScreen() override {
         ScreenManager::hideScreen();
+        
+        // Stop the timer when hiding the screen
         if (gameTimer) {
-            gameTimer->stop(); // Pause timer when screen is hidden
+            gameTimer->stop();
+        }
+    }
+
+    void renderScreen() {
+        // First render the room in 3D space
+        if (room && camera) {
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            camera->applyTransformation();
+            room->render();
+        }
+
+        // Now render UI components (timer, etc.)
+        ScreenManager::renderScreen();
+    }
+
+    void updateScreen(float deltaTime) {
+        // First update UI components
+        ScreenManager::updateScreen(deltaTime);
+
+        // Then update game logic
+        if (camera) {
+            camera->update(deltaTime);
+            
+            // Apply collision detection with room walls
+            if (room) {
+                const float* roomDimensions = room->getDimensions();
+                float roomWidth = roomDimensions[0];
+                float roomHeight = roomDimensions[1];
+                float roomDepth = roomDimensions[2];
+
+                float pos[3];
+                camera->getPosition(pos);
+
+                float wallOffset = 0.2f;
+                float floorOffset = 0.1f;
+
+                if (pos[0] < -roomWidth / 2 + wallOffset) pos[0] = -roomWidth / 2 + wallOffset;
+                if (pos[0] > roomWidth / 2 - wallOffset) pos[0] = roomWidth / 2 - wallOffset;
+                if (pos[2] < -roomDepth / 2 + wallOffset) pos[2] = -roomDepth / 2 + wallOffset;
+                if (pos[2] > roomDepth / 2 - wallOffset) pos[2] = roomDepth / 2 - wallOffset;
+                if (pos[1] < -roomHeight / 2 + 1.7f + floorOffset) pos[1] = -roomHeight / 2 + 1.7f + floorOffset;
+
+                camera->setPosition(pos[0], pos[1], pos[2]);
+            }
         }
     }
 
     void resizeScreen(int width, int height) override {
-        if (!getComponents().empty()) {
-            // Update timer position
-            getComponents()[0]->setPosition(width / 2 - 50, height - 50);
-
-            // Update pause button position
-            getComponents()[1]->setPosition(20, height - 50);
-
-            // Update status button position
-            getComponents()[2]->setPosition(width - 100, height - 50);
-
-            // Update game over button position
-            getComponents()[3]->setPosition(width / 2 - 75, 50);
-        }
-    }
-};
-
-// GameStateScreenManager class
-class GameStateScreenManager : public ScreenManager {
-public:
-    GameStateScreenManager() : ScreenManager(Screen::GameStateScreen) {}
-
-    void setupScreen(Navigator* nav) {
-        // Create a title
-        TextBox* title = new TextBox("Game Status", "");
-        title->setEditable(false);
-        title->setPosition(windowWidth / 2 - 100, windowHeight - 100);
-        title->setSize(200, 40);
-        title->setTextColor(1.0f, 1.0f, 1.0f);
-        title->setBackgroundColor(0.2f, 0.4f, 0.2f);
-        addComponent(title);
-
-        // Create some status information
-        TextBox* infoBox = new TextBox("Level: 1\nScore: 0\nLives: 3", "");
-        infoBox->setEditable(false);
-        infoBox->setPosition(windowWidth / 2 - 100, windowHeight / 2 - 50);
-        infoBox->setSize(200, 100);
-        infoBox->setBackgroundColor(0.2f, 0.2f, 0.2f);
-        infoBox->setTextColor(1.0f, 1.0f, 1.0f);
-        addComponent(infoBox);
-
-        // Create a back button
-        Button* backButton = new Button("Back to Game");
-        backButton->setPosition(windowWidth / 2 - 75, windowHeight / 2 - 150);
-        backButton->setSize(150, 50);
-        backButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::Level1Screen);
-            });
-        addComponent(backButton);
-    }
-
-    void resizeScreen(int width, int height) override {
-        if (!getComponents().empty()) {
-            // Update title position
-            getComponents()[0]->setPosition(width / 2 - 100, height - 100);
-
-            // Update info box position
-            getComponents()[1]->setPosition(width / 2 - 100, height / 2 - 50);
-
-            // Update back button position
-            getComponents()[2]->setPosition(width / 2 - 75, height / 2 - 150);
-        }
-    }
-};
-
-// PauseScreenManager class
-class PauseScreenManager : public ScreenManager {
-public:
-    PauseScreenManager() : ScreenManager(Screen::PauseScreen) {}
-
-    void setupScreen(Navigator* nav) {
-        // Create a title with BorderBox
-        TextBox* pauseTitle = new TextBox("PAUSED", "");
-        pauseTitle->setEditable(false);
-        pauseTitle->setSize(180, 40);
-        pauseTitle->setTextColor(1.0f, 1.0f, 1.0f);
-        pauseTitle->setBackgroundColor(0.3f, 0.3f, 0.3f);
-
-        BorderBox* titleBorder = new BorderBox(pauseTitle, 3.0f, 10.0f);
-        titleBorder->setPosition(windowWidth / 2 - 100, windowHeight - 120);
-        titleBorder->setSize(200, 60);
-        titleBorder->setBorderColor(1.0f, 0.8f, 0.0f);
-        addComponent(titleBorder);
-
-        // Create a resume button
-        Button* resumeButton = new Button("Resume Game");
-        resumeButton->setPosition(windowWidth / 2 - 75, windowHeight / 2);
-        resumeButton->setSize(150, 50);
-        resumeButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::Level1Screen);
-            });
-        addComponent(resumeButton);
-
-        // Create a main menu button
-        Button* menuButton = new Button("Main Menu");
-        menuButton->setPosition(windowWidth / 2 - 75, windowHeight / 2 - 70);
-        menuButton->setSize(150, 50);
-        menuButton->setBackgroundColor(0.5f, 0.5f, 0.7f);
-        menuButton->setOnClick([nav]() {
-            nav->navigateTo(Screen::StartScreen);
-            });
-        addComponent(menuButton);
-    }
-
-    void resizeScreen(int width, int height) override {
-        if (!getComponents().empty()) {
-            // Update title border position
-            getComponents()[0]->setPosition(width / 2 - 100, height - 120);
-
-            // Update resume button position
-            getComponents()[1]->setPosition(width / 2 - 75, height / 2);
-
-            // Update menu button position
-            getComponents()[2]->setPosition(width / 2 - 75, height / 2 - 70);
+        // Update the timer position
+        if (gameTimer) {
+            gameTimer->setPosition(10, height - 40);
         }
     }
 };

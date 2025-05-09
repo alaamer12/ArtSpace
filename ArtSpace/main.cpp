@@ -1,168 +1,142 @@
 #include <GL/glut.h>
-#include <iostream>
-#include "camera.h"
-#include "room.h"
-#include "input.h"
-#include "config.h"
+#include "screen.h"
 
-HumanCamera* camera = nullptr;
-Room* room = nullptr;
-InputSystem* inputSystem = nullptr;
-float lastTime = 0;
+int lastTime = 0;
 
-void display();
-void reshape(int width, int height);
-void update();
-void keyboard(unsigned char key, int x, int y);
-void specialKeyboard(int key, int x, int y);
-void mouseMotion(int x, int y);
-void mouseButton(int button, int state, int x, int y);
-void idle();
-void cleanup();
-void initLighting();
-
+// GLUT callbacks
 void display() {
-    glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Enable blending for transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Set up 2D projection
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, 0, windowHeight);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    camera->applyTransformation();
+    // Render current screen
+    if (navigator) {
+        navigator->renderCurrentScreen();
+    }
 
-    room->render();
     glutSwapBuffers();
 }
 
 void reshape(int width, int height) {
+    windowWidth = width;
+    windowHeight = height;
     glViewport(0, 0, width, height);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(60.0f, (float)width / (float)height, 0.1f, 100.0f);
-
-    Config::getInstance().setScreenWidth(width);
-    Config::getInstance().setScreenHeight(height);
+    // Notify all screens of the resize
+    if (navigator) {
+        navigator->resizeAllScreens(width, height);
+    }
 }
 
-float getDeltaTime() {
-    float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-    float deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-    if (deltaTime > 0.1f) deltaTime = 0.1f;
-    return deltaTime;
-}
+void mouse(int button, int state, int x, int y) {
+    if (navigator) {
+        navigator->handleMouseEvent(button, state, x, y);
+    }
 
-void idle() {
-    update();
     glutPostRedisplay();
 }
 
-void update() {
-    float deltaTime = getDeltaTime();
-    inputSystem->update();
-    camera->update(deltaTime);
-
-    const float* roomDimensions = room->getDimensions();
-    float roomWidth = roomDimensions[0];
-    float roomHeight = roomDimensions[1];
-    float roomDepth = roomDimensions[2];
-
-    float pos[3];
-    camera->getPosition(pos);
-
-    float wallOffset = 0.2f;
-    float floorOffset = 0.1f;
-
-    if (pos[0] < -roomWidth / 2 + wallOffset) pos[0] = -roomWidth / 2 + wallOffset;
-    if (pos[0] > roomWidth / 2 - wallOffset) pos[0] = roomWidth / 2 - wallOffset;
-    if (pos[2] < -roomDepth / 2 + wallOffset) pos[2] = -roomDepth / 2 + wallOffset;
-    if (pos[2] > roomDepth / 2 - wallOffset) pos[2] = roomDepth / 2 - wallOffset;
-    if (pos[1] < -roomHeight / 2 + 1.7f + floorOffset) pos[1] = -roomHeight / 2 + 1.7f + floorOffset;
-
-    camera->setPosition(pos[0], pos[1], pos[2]);
-}
-
 void keyboard(unsigned char key, int x, int y) {
-}
-
-void keyboardUp(unsigned char key, int x, int y) {
-    inputSystem->handleKeyRelease(key, x, y);
-}
-
-void specialKeyboard(int key, int x, int y) {
-}
-
-void specialKeyboardUp(int key, int x, int y) {
-}
-
-void mouseMotion(int x, int y) {
-    inputSystem->handleMouseMotion(x, y);
-}
-
-void mouseButton(int button, int state, int x, int y) {
-
-}
-
-void initLighting() {
-}
-
-void cleanup() {
-    if (camera) {
-        delete camera;
-        camera = nullptr;
+    if (navigator) {
+        navigator->handleKeyEvent(key);
     }
 
-    if (room) {
-        delete room;
-        room = nullptr;
+    // ESC key exits the application
+    if (key == 27) { // ESC key
+        exit(0);
     }
+
+    glutPostRedisplay();
 }
 
+void motion(int x, int y) {
+    if (navigator) {
+        navigator->handleMouseMove(x, y);
+    }
+
+    glutPostRedisplay();
+}
+
+void idle() {
+    float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    float deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+
+    // Update current screen
+    if (navigator) {
+        navigator->updateCurrentScreen(deltaTime);
+    }
+
+    glutPostRedisplay();
+}
+
+// Initialize all screens and register them with the navigator
+void initializeScreens() {
+    // Create screen managers
+    StartScreenManager* startScreen = new StartScreenManager();
+    Level1ScreenManager* level1Screen = new Level1ScreenManager();
+    //GameStateScreenManager* stateScreen = new GameStateScreenManager();
+    //PauseScreenManager* pauseScreen = new PauseScreenManager();
+    EndScreenManager* endScreen = new EndScreenManager();
+
+    // Set up components for each screen
+    startScreen->setupScreen(navigator);
+    level1Screen->setupScreen(navigator);
+    /*stateScreen->setupScreen(navigator);
+    pauseScreen->setupScreen(navigator);*/
+    endScreen->setupScreen(navigator);
+
+    // Register screens with navigator
+    navigator->registerScreen(startScreen);
+    navigator->registerScreen(level1Screen);
+    /*navigator->registerScreen(stateScreen);
+    navigator->registerScreen(pauseScreen);*/
+    navigator->registerScreen(endScreen);
+
+    // Start with the start screen
+    navigator->navigateTo(Screen::StartScreen);
+}
+
+// Main function
 int main(int argc, char** argv) {
+    // Initialize GLUT
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitWindowSize(windowWidth, windowHeight);
+    glutCreateWindow("ArtSpace Demo");
 
-    Config& config = Config::getInstance();
-    int width = config.getScreenWidth();
-    int height = config.getScreenHeight();
-
-    glutInitWindowSize(width, height);
-    glutInitWindowPosition(100, 100);
-    glutCreateWindow("ArtSpace - Room & Camera Demo");
-
-    inputSystem = InputSystem::getInstance();
-    inputSystem->registerCallbacks();
-
+    // Register callbacks
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
+    glutMouseFunc(mouse);
+    glutKeyboardFunc(keyboard);
+    glutPassiveMotionFunc(motion);
     glutIdleFunc(idle);
 
-    glEnable(GL_DEPTH_TEST);
-    initLighting();
+    // Initialize navigator
+    navigator = new Navigator();
 
-    room = new Room(10.0f, 5.0f, 10.0f);
+    // Initialize screens
+    initializeScreens();
 
-    std::string texturePath = "E:\\Projects\\Games\\ArtSpace\\ArtSpace\\assets\\textures\\floor.bmp";
-    room->setWallTexture(texturePath);
-    room->setFloorTexture(texturePath);
-    room->setRoofTexture(texturePath);
-
-    camera = new HumanCamera();
-    camera->setPosition(0.0f, 0.0f, 3.0f);
-
-    glutWarpPointer(width / 2, height / 2);
-
-    std::cout << "ArtSpace Room & Camera Demo" << std::endl;
-    std::cout << "Controls:" << std::endl;
-    std::cout << "  WASD - Move" << std::endl;
-    std::cout << "  Mouse - Look around" << std::endl;
-    std::cout << "  F - Toggle wireframe mode" << std::endl;
-    std::cout << "  +/- - Adjust mouse sensitivity" << std::endl;
-    std::cout << "  ESC - Exit" << std::endl;
-
+    // Initialize time
     lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+
+    // Start main loop
     glutMainLoop();
-    cleanup();
+
+    // Clean up (this will never be reached in practice)
+    delete navigator;
+
     return 0;
 }
