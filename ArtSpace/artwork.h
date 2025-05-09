@@ -22,6 +22,10 @@ public:
     Artwork(const std::string& imagePath, float x, float y, float z,
         float width, float height, ArtworkPlacement placement = NORTH_WALL);
 
+    // Constructor with image and frame paths
+    Artwork(const std::string& imagePath, const std::string& framePath, float x, float y, float z,
+        float width, float height, ArtworkPlacement placement = NORTH_WALL);
+
     ~Artwork();
 
     // Core rendering function
@@ -31,12 +35,19 @@ public:
     void translate(float dx, float dy, float dz);
     void rotate(float angle, float x, float y, float z);
     void scale(float sx, float sy, float sz);
+    
+    // New stretching and scaling functions
+    void stretchImage(float stretchX, float stretchY);
+    void stretchFrame(float stretchX, float stretchY);
+    void resetImageStretch();
+    void resetFrameStretch();
 
     // Setters
     void setPosition(float x, float y, float z);
     void setDimensions(float width, float height);
     void setPlacement(ArtworkPlacement placement);
     void setImage(const std::string& imagePath);
+    void setFrame(const std::string& framePath);
     void setFrame(bool hasFrame, float frameWidth = 0.1f,
         float r = 0.7f, float g = 0.5f, float b = 0.3f);
     void setTint(float r, float g, float b, float a = 1.0f);
@@ -47,6 +58,12 @@ public:
     float* getDimensions() const;
     ArtworkPlacement getPlacement() const;
     bool isImageLoaded() const;
+    
+    // New getters for stretch values
+    float getImageStretchX() const { return imageStretchX; }
+    float getImageStretchY() const { return imageStretchY; }
+    float getFrameStretchX() const { return frameStretchX; }
+    float getFrameStretchY() const { return frameStretchY; }
 
 private:
     // Position
@@ -59,11 +76,16 @@ private:
     float rotAngle;
     float rotX, rotY, rotZ;
     float scaleX, scaleY, scaleZ;
+    
+    // New stretching attributes
+    float imageStretchX, imageStretchY;
+    float frameStretchX, frameStretchY;
 
     ArtworkPlacement placement;
 
-    // Image
-    Image* artworkImage;
+    // Image objects
+    Image* artworkImage;    // The actual artwork
+    Image* frameImage;      // The frame image
 
     // Frame properties
     bool hasFrame;
