@@ -42,30 +42,40 @@ void Camera::update(float deltaTime) {
         clampAngles();
     }
     
+    // Calculate direction vectors based on camera yaw
+    float yawRadians = rotation[1] * DEG_TO_RAD;
+    
+    // Forward vector
+    float forwardX = sin(yawRadians);
+    float forwardZ = -cos(yawRadians);
+    
+    // Right vector
+    float rightX = cos(yawRadians);
+    float rightZ = sin(yawRadians);
+    
+    // Movement speed
+    float moveSpeed = 0.1f;
+    
     // Handle WASD movement
     if (input->isKeyPressed('w') || input->isKeyPressed('W')) {
         // Move forward
-        float radians = rotation[1] * DEG_TO_RAD;
-        position[0] -= sin(radians) * 0.1f;
-        position[2] -= cos(radians) * 0.1f;
+        position[0] += forwardX * moveSpeed;
+        position[2] += forwardZ * moveSpeed;
     }
     if (input->isKeyPressed('s') || input->isKeyPressed('S')) {
         // Move backward
-        float radians = rotation[1] * DEG_TO_RAD;
-        position[0] += sin(radians) * 0.1f;
-        position[2] += cos(radians) * 0.1f;
+        position[0] -= forwardX * moveSpeed;
+        position[2] -= forwardZ * moveSpeed;
     }
     if (input->isKeyPressed('a') || input->isKeyPressed('A')) {
         // Move left
-        float radians = rotation[1] * DEG_TO_RAD;
-        position[0] -= cos(radians) * 0.1f;
-        position[2] += sin(radians) * 0.1f;
+        position[0] -= rightX * moveSpeed;
+        position[2] -= rightZ * moveSpeed;
     }
     if (input->isKeyPressed('d') || input->isKeyPressed('D')) {
         // Move right
-        float radians = rotation[1] * DEG_TO_RAD;
-        position[0] += cos(radians) * 0.1f;
-        position[2] -= sin(radians) * 0.1f;
+        position[0] += rightX * moveSpeed;
+        position[2] += rightZ * moveSpeed;
     }
 }
 
@@ -213,11 +223,18 @@ void HumanCamera::update(float deltaTime) {
     getRotation(pitch, yaw, roll);
     float yawRadians = yaw * DEG_TO_RAD;
     
-    // Direction vectors
-    float forwardX = -sin(yawRadians);
+    // In OpenGL, when facing -Z (yaw=0):
+    // Forward is (0,0,-1) = negative Z direction
+    // Right is (1,0,0) = positive X direction
+    
+    // Calculate direction vectors based on camera yaw
+    // Forward vector: sin(yaw) gives X, -cos(yaw) gives Z
+    float forwardX = sin(yawRadians);
     float forwardZ = -cos(yawRadians);
+    
+    // Right vector: cos(yaw) gives X, sin(yaw) gives Z
     float rightX = cos(yawRadians);
-    float rightZ = -sin(yawRadians);
+    float rightZ = sin(yawRadians);
     
     // Reset movement direction
     float moveX = 0.0f;

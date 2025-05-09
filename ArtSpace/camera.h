@@ -37,7 +37,13 @@
 
 #pragma once
 #include <GL/glut.h>
+#include <cmath>
 #include "input.h"
+
+// Define PI if it's not already defined
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 class Camera {
 private:
@@ -60,9 +66,23 @@ public:
     // Get/set camera properties
     void setPosition(float x, float y, float z);
     void getPosition(float& x, float& y, float& z) { x = position[0]; y = position[1]; z = position[2]; }
+    void getPosition(float pos[3]) { pos[0] = position[0]; pos[1] = position[1]; pos[2] = position[2]; }
     
     void setRotation(float pitch, float yaw, float roll);
     void getRotation(float rot[3]) { rot[0] = rotation[0]; rot[1] = rotation[1]; rot[2] = rotation[2]; }
+    
+    // Get the camera's forward looking direction
+    void getLookDirection(float dir[3]) {
+        // Convert rotation angles to radians
+        float yawRad = rotation[1] * M_PI / 180.0f;
+        float pitchRad = rotation[0] * M_PI / 180.0f;
+        
+        // Calculate direction vector - this matches OpenGL's coordinate system
+        // where: -Z is forward, +X is right, +Y is up
+        dir[0] = sin(yawRad) * cos(pitchRad);
+        dir[1] = sin(pitchRad);
+        dir[2] = -cos(yawRad) * cos(pitchRad);
+    }
     
     void setMouseSensitivity(float sensitivity);
     float getMouseSensitivity() { return mouseSensitivity; }
