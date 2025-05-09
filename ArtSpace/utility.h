@@ -52,14 +52,9 @@
  // Forward declarations - don't include the full headers
 class Config;
 class Button;
-class TextBox;
-class Timer;
+
+
 class UIComponent;
-class ScreenManager;
-class Navigator;
-class MainScreenManager;
-class TimerScreenManager;
-class InputScreenManager;
 
 // TextAlignment enumeration for text rendering
 enum class TextAlignment {
@@ -184,41 +179,6 @@ public:
     static void hexToRGB(const std::string& hexColor, float& r, float& g, float& b);
 };
 
-// BorderBox component
-class BorderBox : public UIComponent {
-private:
-    UIComponent* content;
-    float borderWidth;
-    float borderColor[4];  // RGBA
-    float backgroundColor[4]; // RGBA
-
-    // Helper method to update content position
-    void updateContentPosition();
-
-public:
-    BorderBox(UIComponent* component, float border = 2.0f, float pad = 5.0f);
-    ~BorderBox() override;
-
-    void render() override;
-    void update(float deltaTime) override;
-
-    void setContent(UIComponent* component);
-    UIComponent* getContent() const { return content; }
-
-    void setBorderWidth(float width);
-    void setBorderColor(float r, float g, float b, float a = 1.0f);
-    void setBackgroundColor(float r, float g, float b, float a = 1.0f);
-
-    // Override position and size setters to update the content position
-    void setPosition(float x, float y);
-    void setSize(float width, float height);
-
-    // Event forwarding methods
-    bool handleMouseEvent(int button, int state, int x, int y);
-    bool handleKeyEvent(unsigned char key);
-    bool handleMouseMove(int x, int y);
-};
-
 // Button component
 class Button : public UIComponent {
 private:
@@ -245,61 +205,4 @@ public:
 
     bool handleMouseEvent(int button, int state, int x, int y);
     bool handleMouseMove(int x, int y);
-};
-
-// TextBox component
-class TextBox : public UIComponent {
-private:
-    std::string text;
-    std::string placeholder;
-    float textColor[4];         // RGBA
-    float backgroundColor[4];   // RGBA
-    float borderColor[4];       // RGBA
-    bool isEditable;
-    bool hasFocus;
-    int cursorPosition;
-    float cursorBlinkTime;
-    bool showCursor;
-
-public:
-    TextBox(const std::string& initialText = "", const std::string& placeholderText = "");
-    ~TextBox() override = default;
-
-    void render() override;
-    void update(float deltaTime) override;
-
-    void setText(const std::string& newText);
-    const std::string& getText() const;
-    void setPlaceholder(const std::string& newPlaceholder);
-    void setEditable(bool editable);
-    void setTextColor(float r, float g, float b, float a = 1.0f);
-    void setBackgroundColor(float r, float g, float b, float a = 1.0f);
-    void setBorderColor(float r, float g, float b, float a = 1.0f);
-
-    bool handleKeyEvent(unsigned char key);
-    bool handleMouseEvent(int button, int state, int x, int y);
-};
-
-// Timer display component
-class Timer : public UIComponent {
-private:
-    std::string timeText;
-    float currentTime;
-    bool isRunning;
-    float textColor[4];  // RGBA
-
-    // Add private helper method to update time text
-    void updateTimeText();
-
-public:
-    Timer();
-    ~Timer() override = default;
-
-    void start();
-    void stop();
-    void reset();
-    void update(float deltaTime) override;
-    void render() override;
-    float getTime() const;
-    void setTextColor(float r, float g, float b, float a = 1.0f);
 };
