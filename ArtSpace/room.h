@@ -1,3 +1,4 @@
+
 #ifndef ROOM_H
 #define ROOM_H
 
@@ -12,9 +13,12 @@ public:
 
     void render();
     const float* getDimensions() const;
+    
+    // Room customization
+    void setWallTexture(const std::string& texturePath);
+
 
     // Texture management functions
-    void setWallTexture(const std::string& texturePath);
     void setFloorTexture(const std::string& texturePath);
     void setRoofTexture(const std::string& texturePath);
 

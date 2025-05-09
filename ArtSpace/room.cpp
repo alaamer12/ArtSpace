@@ -1,4 +1,6 @@
 #include "room.h"
+   // TODO: Initialize wall vertices and texture coordinates
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -105,7 +107,7 @@ void Room::render() {
         wallTextureID, wallRepeat
     );
 
-    
+
     // Draw floor
     drawTexturedQuad(
         -ROOM_WIDTH / 2, -ROOM_HEIGHT / 2, -ROOM_DEPTH / 2,
@@ -136,6 +138,9 @@ const float* Room::getDimensions() const {
 }
 
 void Room::setWallTexture(const std::string& texturePath) {
+    // TODO: Load and apply wall texture
+
+
     // Delete old texture if it exists
     if (wallTextureID != 0) {
         glDeleteTextures(1, &wallTextureID);
@@ -165,89 +170,6 @@ void Room::setFloorTexture(const std::string& texturePath) {
         generateCheckerboardTexture(floorTextureID, 0.6f, 0.4f, 0.2f); // Brown
         std::cout << "Failed to load floor texture. Using default." << std::endl;
     }
-}
-
-void Room::setRoofTexture(const std::string& texturePath) {
-    // Delete old texture if it exists
-    if (roofTextureID != 0) {
-        glDeleteTextures(1, &roofTextureID);
-    }
-
-    // Load new texture
-    roofTextureID = loadTexture(texturePath);
-
-    // If loading failed, create a default texture
-    if (roofTextureID == 0) {
-        generateCheckerboardTexture(roofTextureID, 0.9f, 0.9f, 0.9f); // White
-        std::cout << "Failed to load roof texture. Using default." << std::endl;
-    }
-}
-
-
-
-GLuint Room::loadTexture(const std::string& filename) {
-    // Open the BMP file
-    std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file) {
-        std::cerr << "Error: Could not open " << filename << std::endl;
-        return 0;
-    }
-
-    // Read the header
-    BMPHeader header;
-    file.read(reinterpret_cast<char*>(&header), sizeof(BMPHeader));
-
-    // Verify it's a BMP file
-    if (header.signature[0] != 'B' || header.signature[1] != 'M') {
-        std::cerr << "Error: " << filename << " is not a valid BMP file" << std::endl;
-        file.close();
-        return 0;
-    }
-
-    // Move to pixel data
-    file.seekg(header.dataOffset, std::ios::beg);
-
-    // Allocate memory for image data (3 bytes per pixel for RGB)
-    int imageSize = header.width * header.height * 3;
-    unsigned char* imageData = new unsigned char[imageSize];
-
-    // Read image data
-    file.read(reinterpret_cast<char*>(imageData), imageSize);
-    file.close();
-
-    // BMP stores images bottom-to-top and BGR instead of RGB, so we need to convert
-    unsigned char* flippedData = new unsigned char[imageSize];
-    for (int y = 0; y < header.height; y++) {
-        for (int x = 0; x < header.width; x++) {
-            int srcIndex = ((header.height - 1 - y) * header.width + x) * 3;
-            int destIndex = (y * header.width + x) * 3;
-
-            // Swap B and R components
-            flippedData[destIndex] = imageData[srcIndex + 2]; // R
-            flippedData[destIndex + 1] = imageData[srcIndex + 1]; // G
-            flippedData[destIndex + 2] = imageData[srcIndex]; // B
-        }
-    }
-
-    // Generate the OpenGL texture
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    // Set texture parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Create the texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, header.width, header.height, 0, GL_RGB, GL_UNSIGNED_BYTE, flippedData);
-
-    // Clean up
-    delete[] imageData;
-    delete[] flippedData;
-
-    return textureID;
 }
 
 void Room::generateCheckerboardTexture(GLuint& textureID, float r, float g, float b) {
@@ -317,4 +239,87 @@ void Room::drawTexturedQuad(float x1, float y1, float z1,
     glVertex3f(x4, y4, z4);
 
     glEnd();
+}
+
+
+void Room::setRoofTexture(const std::string& texturePath) {
+    // Delete old texture if it exists
+    if (roofTextureID != 0) {
+        glDeleteTextures(1, &roofTextureID);
+    }
+
+    // Load new texture
+    roofTextureID = loadTexture(texturePath);
+
+    // If loading failed, create a default texture
+    if (roofTextureID == 0) {
+        generateCheckerboardTexture(roofTextureID, 0.9f, 0.9f, 0.9f); // White
+        std::cout << "Failed to load roof texture. Using default." << std::endl;
+    }
+}
+
+
+GLuint Room::loadTexture(const std::string& filename) {
+    // Open the BMP file
+    std::ifstream file(filename.c_str(), std::ios::binary);
+    if (!file) {
+        std::cerr << "Error: Could not open " << filename << std::endl;
+        return 0;
+    }
+
+    // Read the header
+    BMPHeader header;
+    file.read(reinterpret_cast<char*>(&header), sizeof(BMPHeader));
+
+    // Verify it's a BMP file
+    if (header.signature[0] != 'B' || header.signature[1] != 'M') {
+        std::cerr << "Error: " << filename << " is not a valid BMP file" << std::endl;
+        file.close();
+        return 0;
+    }
+
+    // Move to pixel data
+    file.seekg(header.dataOffset, std::ios::beg);
+
+    // Allocate memory for image data (3 bytes per pixel for RGB)
+    int imageSize = header.width * header.height * 3;
+    unsigned char* imageData = new unsigned char[imageSize];
+
+    // Read image data
+    file.read(reinterpret_cast<char*>(imageData), imageSize);
+    file.close();
+
+    // BMP stores images bottom-to-top and BGR instead of RGB, so we need to convert
+    unsigned char* flippedData = new unsigned char[imageSize];
+    for (int y = 0; y < header.height; y++) {
+        for (int x = 0; x < header.width; x++) {
+            int srcIndex = ((header.height - 1 - y) * header.width + x) * 3;
+            int destIndex = (y * header.width + x) * 3;
+
+            // Swap B and R components
+            flippedData[destIndex] = imageData[srcIndex + 2]; // R
+            flippedData[destIndex + 1] = imageData[srcIndex + 1]; // G
+            flippedData[destIndex + 2] = imageData[srcIndex]; // B
+        }
+    }
+
+    // Generate the OpenGL texture
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Create the texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, header.width, header.height, 0, GL_RGB, GL_UNSIGNED_BYTE, flippedData);
+
+    // Clean up
+    delete[] imageData;
+    delete[] flippedData;
+
+    return textureID;
 }

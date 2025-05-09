@@ -1,3 +1,5 @@
+
+#include <cstdlib>
 #include <GL/glut.h>
 #include <iostream>
 #include "screen.h"
@@ -92,8 +94,6 @@ void display() {
 }
 
 void reshape(int width, int height) {
-    windowWidth = width;
-    windowHeight = height;
     glViewport(0, 0, width, height);
 
     // Set up perspective projection for 3D view
