@@ -17,7 +17,7 @@ void cleanup();
 
 
 void display() {
-    
+
     GameManager::getInstance()->render();
     glutSwapBuffers();
 }
