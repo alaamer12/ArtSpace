@@ -1,10 +1,5 @@
 #include "room.h"
-   // TODO: Initialize wall vertices and texture coordinates
 
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <cstring>
 
 // BMP file header structure
 #pragma pack(push, 1)

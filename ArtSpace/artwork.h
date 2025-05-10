@@ -3,7 +3,7 @@
 
 #include <GL/glut.h>
 #include <string>
-#include "utility.h" // Include your custom Image class
+#include "utility.h"
 
 enum ArtworkPlacement {
     NORTH_WALL,
@@ -14,11 +14,9 @@ enum ArtworkPlacement {
 
 class Artwork {
 public:
-    // Constructor with position and dimensions
     Artwork(float x, float y, float z, float width, float height,
         ArtworkPlacement placement = NORTH_WALL);
 
-    // Constructor with image path
     Artwork(const std::string& imagePath, float x, float y, float z,
         float width, float height, ArtworkPlacement placement = NORTH_WALL);
 

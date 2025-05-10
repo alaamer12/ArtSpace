@@ -1,5 +1,6 @@
 #pragma once
 #include <GL/glut.h>
+#include <cstring>
 
 class InputSystem {
 private:
@@ -36,9 +37,5 @@ public:
     bool isMovementKeyPressed();
     bool isMouseButtonPressed(int button);
     
-    // Mouse position and movement
-    void getMousePosition(float& x, float& y);
     void getMouseDelta(float& deltaX, float& deltaY);
-    bool getIsDragging() const;
-    bool getIsRotating() const;
 };

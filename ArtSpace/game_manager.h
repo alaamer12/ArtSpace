@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <cmath>
-#include <iomanip>
 #include "camera.h"
 #include "artwork.h"
 #include "artwork_manager.h"
@@ -15,27 +14,24 @@
 #include "lever.h"
 #include "sound_manager.h"
 
-// Define artwork IDs for easy reference
+
 enum ArtworkID {
     ARTWORK_MEGATRON_ONE,
     ARTWORK_MEGATRON_PRIME,
     ARTWORK_STARSCREAM,
-    // Add more artwork IDs as needed
     ARTWORK_COUNT
 };
 
-// Single Game Manager class to encapsulate all game logic
+
 class GameManager {
 private:
     // Singleton pattern
     static GameManager* instance;
     
-    // Path definitions
     std::string basePath4P;
     std::string basePath4T;
     std::string basePath4F;
     
-    // Game objects
     HumanCamera* camera;
     Room* room;
     InputSystem* inputSystem;
@@ -44,20 +40,16 @@ private:
     SoundManager* soundManager;
     float lastTime;
     
-    // Array of image and frame paths
     std::string* imageID;
     std::string* frameID;
     ArtworkConfig* artworkConfigs;
     
-    // Closest artwork tracking
     int closestArtworkID;
     float closestArtworkDistance;
     bool debugProximity;
     
-    // Store the mapping between index in artworkManager and actual artwork IDs
     std::vector<int> artworkIndexToID;
     
-    // Win condition tracking
     bool gameWon;
     float winTimer;
     std::vector<float> artworkRotations;
@@ -69,10 +61,8 @@ private:
     bool winFlashingLights;
     float flashTimer;
     
-    // Constructor is private for singleton
     GameManager();
     
-    // Initialize artwork configurations
     void initArtworkConfigs();
     
     // Calculate distance between two 3D points
@@ -84,10 +74,8 @@ private:
     // Find closest artwork to camera
     void updateClosestArtwork();
     
-    // Get artwork name from ID
     std::string getArtworkName(int id);
     
-    // Rotate closest artwork
     void rotateClosestArtwork(float angle);
     
     // Check if win condition is met (all artworks at 0 rotation)
@@ -97,14 +85,11 @@ private:
     void handleWinState(float deltaTime);
     
 public:
-    // Destructor
     ~GameManager();
     
-    // Delete copy constructor and assignment
     GameManager(const GameManager&) = delete;
     GameManager& operator=(const GameManager&) = delete;
     
-    // Get singleton instance
     static GameManager* getInstance();
     
     // Initialization methods
@@ -119,7 +104,6 @@ public:
     void update(float deltaTime);
     float getDeltaTime();
     
-    // Input handling
     void handleKeyPress(unsigned char key, int x, int y);
     void handleKeyRelease(unsigned char key, int x, int y);
     void handleSpecialKeyPress(int key, int x, int y);
@@ -127,23 +111,8 @@ public:
     void handleMouseMotion(int x, int y);
     void handleMouseButton(int button, int state, int x, int y);
     
-    // Rendering
     void render();
-    
-    // Cleanup
     void cleanup();
-    
-    // Getters
-    HumanCamera* getCamera() const { return camera; }
-    Room* getRoom() const { return room; }
-    ArtworkManager* getArtworkManager() const { return artworkManager; }
-    InputSystem* getInputSystem() const { return inputSystem; }
-    int getClosestArtworkID() const { return closestArtworkID; }
-    float getClosestArtworkDistance() const { return closestArtworkDistance; }
-    Lever* getLever() const { return lever; }
-    
-    // Toggle debug mode
-    void toggleDebugProximity() { debugProximity = !debugProximity; }
     
     // Utility functions
     void printControls();
@@ -159,28 +128,22 @@ GameManager::GameManager()
       closestArtworkID(-1), closestArtworkDistance(999999.0f), debugProximity(false),
       gameWon(false), winTimer(0.0f),
       winAnimationActive(false), winAnimationSpeed(0.0f), totalWinRotation(0.0f), winFlashingLights(false), flashTimer(0.0f) {
-    // Initialize arrays
     imageID = new std::string[ARTWORK_COUNT];
     frameID = new std::string[ARTWORK_COUNT];
     artworkConfigs = new ArtworkConfig[ARTWORK_COUNT];
     
-    // Initialize random seed
     srand(static_cast<unsigned int>(time(nullptr)));
     
-    // Init will be called separately
 }
 
-// Destructor
 GameManager::~GameManager() {
     cleanup();
     
-    // Clean up arrays
     delete[] imageID;
     delete[] frameID;
     delete[] artworkConfigs;
 }
 
-// Get singleton instance
 GameManager* GameManager::getInstance() {
     if (instance == nullptr) {
         instance = new GameManager();
@@ -188,7 +151,6 @@ GameManager* GameManager::getInstance() {
     return instance;
 }
 
-// Calculate distance between two 3D points
 float GameManager::calculateDistance(float x1, float y1, float z1, float x2, float y2, float z2) {
     float dx = x2 - x1;
     float dy = y2 - y1;
@@ -196,7 +158,6 @@ float GameManager::calculateDistance(float x1, float y1, float z1, float x2, flo
     return std::sqrt(dx*dx + dy*dy + dz*dz);
 }
 
-// Get artwork name from ID
 std::string GameManager::getArtworkName(int id) {
     switch (id) {
         case ARTWORK_MEGATRON_ONE: return "Megatron One";
@@ -206,18 +167,15 @@ std::string GameManager::getArtworkName(int id) {
     }
 }
 
-// Calculate perceptual distance between camera and artwork
 float GameManager::calculateArtworkDistance(Artwork* artwork, float cameraX, float cameraY, float cameraZ) {
     if (!artwork) return 999999.0f;
     
     float* artPos = artwork->getPosition();
     
-    // Basic Euclidean distance - This is more reliable for identification
     return calculateDistance(cameraX, cameraY, cameraZ, artPos[0], artPos[1], artPos[2]);
     
 }
 
-// Find closest artwork to camera
 void GameManager::updateClosestArtwork() {
     if (!camera || !artworkManager || artworkManager->getArtworkCount() == 0) {
         return;
@@ -228,13 +186,7 @@ void GameManager::updateClosestArtwork() {
     
     float closestDist = 999999.0f;
     int closestIdx = -1;
-    
-    // Debug output all artwork distances if in debug mode
-    if (debugProximity) {
-        std::cout << "---------- Artwork Distances ----------" << std::endl;
-        std::cout << "Camera position: " << cameraPos[0] << ", " << cameraPos[1] << ", " << cameraPos[2] << std::endl;
-    }
-    
+
     // Check each artwork
     for (size_t i = 0; i < artworkManager->getArtworkCount(); i++) {
         Artwork* artwork = artworkManager->getArtwork(i);
@@ -257,10 +209,6 @@ void GameManager::updateClosestArtwork() {
         }
     }
     
-    if (debugProximity) {
-        std::cout << "Closest: " << closestIdx << " with distance " << closestDist << std::endl;
-        std::cout << "----------------------------------------" << std::endl;
-    }
     
     // Map the closestIdx to the correct artwork ID
     int artworkID = closestIdx < artworkIndexToID.size() ? artworkIndexToID[closestIdx] : closestIdx;
@@ -389,18 +337,14 @@ void GameManager::initRoom() {
     room->setRoofTexture(roofTexturePath);
 }
 
-// Initialize camera
 void GameManager::initCamera() {
     camera = new HumanCamera();
     camera->setPosition(0.0f, 0.0f, 3.0f);
 }
 
-// Initialize artworks
 void GameManager::initArtworks() {
-    // Clear the artwork index to ID mapping
     artworkIndexToID.clear();
     
-    // Clear rotation tracking
     artworkRotations.clear();
     
     // Create artwork #1 using config
@@ -438,15 +382,7 @@ void GameManager::initArtworks() {
     for (size_t i = 0; i < artworkManager->getArtworkCount(); i++) {
         Artwork* artwork = artworkManager->getArtwork(i);
         float* pos = artwork->getPosition();
-        artwork->setPosition(pos[0], 1.0f, pos[2]); // Setting y to be at eye level
-    }
-
-    std::cout << "Initialized " << artworkManager->getArtworkCount() << " artworks" << std::endl;
-    std::cout << "Artwork mapping: " << std::endl;
-    for (size_t i = 0; i < artworkIndexToID.size(); i++) {
-        std::cout << "  Index " << i << " -> ID " << artworkIndexToID[i] 
-                  << " (" << getArtworkName(artworkIndexToID[i]) << ")" 
-                  << ", Rotation: " << artworkRotations[i] << "°" << std::endl;
+        artwork->setPosition(pos[0], 1.0f, pos[2]);
     }
 }
 
@@ -456,22 +392,15 @@ void GameManager::initLever() {
     float leverZ = 0.0f; 
     
     lever = new Lever(leverX, leverY, leverZ, 0.5f);
-    
-    std::cout << "Initialized lever on West wall" << std::endl;
 }
 
-// Main initialization
 void GameManager::init() {
-    // Get input system instance
     inputSystem = InputSystem::getInstance();
     
-    // Get artwork manager instance
     artworkManager = ArtworkManager::getInstance();
     
-    // Initialize paths
     initPaths();
     
-    // Initialize artwork configurations
     initArtworkConfigs();
     
     // Initialize room
@@ -505,7 +434,6 @@ void GameManager::init() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-// Get delta time
 float GameManager::getDeltaTime() {
     float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
     float deltaTime = currentTime - lastTime;
@@ -514,10 +442,7 @@ float GameManager::getDeltaTime() {
     return deltaTime;
 }
 
-// Update game state
 void GameManager::update(float deltaTime) {
-    
-    // Update camera
     camera->update(deltaTime);
 
     // Constrain camera to room boundaries
@@ -554,13 +479,10 @@ void GameManager::update(float deltaTime) {
     }
 }
 
-// Render the game
 void GameManager::render() {
-    // Set clear color
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set up modelview matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -579,12 +501,9 @@ void GameManager::render() {
     }
 }
 
-// Handle key press
 void GameManager::handleKeyPress(unsigned char key, int x, int y) {
-    // First pass the key to the input system for movement handling
     inputSystem->handleKeyPress(key, x, y);
     
-    // Handle spacebar for lever activation and sound
     if (key == ' ') {
         if (lever) {
             // Check if the win condition is met
@@ -612,25 +531,17 @@ void GameManager::handleKeyPress(unsigned char key, int x, int y) {
     
     // Artwork rotation keys
     if (key == 'k') {
-        // Rotate counterclockwise by 15 degrees
-        rotateClosestArtwork(-15.0f);
+        // Rotate counterclockwise by -15 degrees
+        rotateClosestArtwork(15.0f);
         glutPostRedisplay();
         return;
     } else if (key == 'l') {
         // Rotate clockwise by 15 degrees
-        rotateClosestArtwork(15.0f);
+        rotateClosestArtwork(-15.0f);
         glutPostRedisplay();
         return;
     }
     
-    // Toggle debug proximity with 'p' key
-    if (key == 'p') {
-        toggleDebugProximity();
-        std::cout << "Debug proximity " << (debugProximity ? "enabled" : "disabled") << std::endl;
-        return;
-    }
-    
-    // Check if we have artwork to manipulate
     if (artworkManager->getArtworkCount() > 0 && closestArtworkID >= 0 && closestArtworkDistance <= 25.0f) {
         // Get the closest artwork for stretching
         int artworkIndex = -1;
@@ -644,87 +555,24 @@ void GameManager::handleKeyPress(unsigned char key, int x, int y) {
         if (artworkIndex >= 0 && artworkIndex < artworkManager->getArtworkCount()) {
             Artwork* art = artworkManager->getArtwork(artworkIndex);
             
-            if (art) {
-                switch (key) {
-                    // Image stretching
-                    case 'x': // Increase X stretch of image
-                        art->stretchImage(art->getImageStretchX() + 0.1f, art->getImageStretchY());
-                        std::cout << getArtworkName(closestArtworkID) << " - Image X stretch: " << art->getImageStretchX() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'X': // Decrease X stretch of image
-                        art->stretchImage(art->getImageStretchX() - 0.1f, art->getImageStretchY());
-                        std::cout << getArtworkName(closestArtworkID) << " - Image X stretch: " << art->getImageStretchX() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'y': // Increase Y stretch of image
-                        art->stretchImage(art->getImageStretchX(), art->getImageStretchY() + 0.1f);
-                        std::cout << getArtworkName(closestArtworkID) << " - Image Y stretch: " << art->getImageStretchY() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'Y': // Decrease Y stretch of image
-                        art->stretchImage(art->getImageStretchX(), art->getImageStretchY() - 0.1f);
-                        std::cout << getArtworkName(closestArtworkID) << " - Image Y stretch: " << art->getImageStretchY() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                        
-                    // Frame stretching
-                    case 'f': // Increase X stretch of frame
-                        art->stretchFrame(art->getFrameStretchX() + 0.1f, art->getFrameStretchY());
-                        std::cout << getArtworkName(closestArtworkID) << " - Frame X stretch: " << art->getFrameStretchX() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'F': // Decrease X stretch of frame
-                        art->stretchFrame(art->getFrameStretchX() - 0.1f, art->getFrameStretchY());
-                        std::cout << getArtworkName(closestArtworkID) << " - Frame X stretch: " << art->getFrameStretchX() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'g': // Increase Y stretch of frame
-                        art->stretchFrame(art->getFrameStretchX(), art->getFrameStretchY() + 0.1f);
-                        std::cout << getArtworkName(closestArtworkID) << " - Frame Y stretch: " << art->getFrameStretchY() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'G': // Decrease Y stretch of frame
-                        art->stretchFrame(art->getFrameStretchX(), art->getFrameStretchY() - 0.1f);
-                        std::cout << getArtworkName(closestArtworkID) << " - Frame Y stretch: " << art->getFrameStretchY() << std::endl;
-                        glutPostRedisplay();
-                        break;
-                        
-                    // Reset stretching
-                    case 'r': // Reset image stretching
-                        art->resetImageStretch();
-                        std::cout << getArtworkName(closestArtworkID) << " - Image stretching reset" << std::endl;
-                        glutPostRedisplay();
-                        break;
-                    case 'R': // Reset frame stretching
-                        art->resetFrameStretch();
-                        std::cout << getArtworkName(closestArtworkID) << " - Frame stretching reset" << std::endl;
-                        glutPostRedisplay();
-                        break;
-                }
-            }
         } else {
             std::cout << "No artwork selected or too far away to modify." << std::endl;
         }
     }
 }
 
-// Handle key release
 void GameManager::handleKeyRelease(unsigned char key, int x, int y) {
     inputSystem->handleKeyRelease(key, x, y);
 }
 
-// Handle special key press
 void GameManager::handleSpecialKeyPress(int key, int x, int y) {
     inputSystem->handleSpecialKeyPress(key, x, y);
 }
 
-// Handle special key release
 void GameManager::handleSpecialKeyRelease(int key, int x, int y) {
     inputSystem->handleSpecialKeyRelease(key, x, y);
 }
 
-// Handle mouse motion
 void GameManager::handleMouseMotion(int x, int y) {
     inputSystem->handleMouseMotion(x, y);
 }
@@ -740,40 +588,18 @@ void GameManager::printControls() {
     std::cout << "Controls:" << std::endl;
     std::cout << "  WASD - Move" << std::endl;
     std::cout << "  Mouse - Look around" << std::endl;
-    std::cout << "  F - Toggle wireframe mode" << std::endl;
-    std::cout << "  +/- - Adjust mouse sensitivity" << std::endl;
     std::cout << "  ESC - Exit" << std::endl;
     std::cout << std::endl;
     std::cout << "Artwork Rotation Controls:" << std::endl;
     std::cout << "  k - Rotate closest artwork counterclockwise by 15 degrees" << std::endl;
     std::cout << "  l - Rotate closest artwork clockwise by 15 degrees" << std::endl;
     std::cout << std::endl;
-    std::cout << "Lever Controls:" << std::endl;
-    std::cout << "  SPACEBAR - Activate the lever to check if all artworks are aligned" << std::endl;
-    std::cout << "             Bulb 1 will always turn green when lever is activated" << std::endl;
-    std::cout << "             Bulb 2 will turn green if you've won (all artworks at 0°)" << std::endl;
-    std::cout << "             Bulb 2 will turn temporarily red if answer is incorrect" << std::endl;
-    std::cout << std::endl;
     std::cout << "Win Condition:" << std::endl;
     std::cout << "  Rotate all artworks to be vertical (0 degrees rotation)" << std::endl;
     std::cout << "  Press SPACEBAR to check your answer once you think you're done" << std::endl;
     std::cout << std::endl;
-    std::cout << "Stretching Controls (closest artwork):" << std::endl;
-    std::cout << "  x/X - Increase/decrease image width" << std::endl;
-    std::cout << "  y/Y - Increase/decrease image height" << std::endl;
-    std::cout << "  f/F - Increase/decrease frame width" << std::endl;
-    std::cout << "  g/G - Increase/decrease frame height" << std::endl;
-    std::cout << "  r/R - Reset image/frame stretching" << std::endl;
-    
-    // Add information about the closest artwork feature
-    std::cout << std::endl;
-    std::cout << "Proximity Features:" << std::endl;
-    std::cout << "  The console will display the closest artwork to you as you move." << std::endl;
-    std::cout << "  Press 'p' to toggle detailed proximity debugging information." << std::endl;
-    std::cout << "  You must be within 25 units of an artwork to interact with it." << std::endl;
 }
 
-// Cleanup
 void GameManager::cleanup() {
     // Clean up camera
     if (camera) {
@@ -796,21 +622,16 @@ void GameManager::cleanup() {
     // Clear the tracking vectors
     artworkIndexToID.clear();
     artworkRotations.clear();
-    
-    // Note: InputSystem and ArtworkManager are singletons and will 
-    // be cleaned up by their own destructors when the program ends
 }
 
-// Rotate closest artwork
 void GameManager::rotateClosestArtwork(float angle) {
-    if (closestArtworkID < 0 || closestArtworkDistance > 25.0f) {
+    if (closestArtworkID < 0 || closestArtworkDistance > 28.0f) {
         // No artwork nearby or too far away
         std::cout << "Too far from artwork to rotate. Current distance: " 
                   << closestArtworkDistance << " units" << std::endl;
         return;
     }
     
-    // Find the artwork in the manager using our mapping
     int artworkIndex = -1;
     for (size_t i = 0; i < artworkIndexToID.size(); i++) {
         if (artworkIndexToID[i] == closestArtworkID) {
@@ -831,9 +652,6 @@ void GameManager::rotateClosestArtwork(float angle) {
             
             // Apply rotation to the artwork
             artwork->rotate(artworkRotations[artworkIndex], 0.0f, 0.0f, 1.0f);
-            
-            std::cout << "Rotated " << getArtworkName(closestArtworkID) << " by " << angle 
-                    << " degrees to " << artworkRotations[artworkIndex] << " degrees" << std::endl;
         }
     }
 }
@@ -854,47 +672,32 @@ bool GameManager::checkWinCondition() {
     return true;
 }
 
-// Handle win state
-void GameManager::handleWinState(float deltaTime) {
-    if (!gameWon) return;
-    
-    // Initialize win animation on first frame
-    if (winTimer == 0.0f) {
-        winAnimationActive = true;
-        winAnimationSpeed = 180.0f; // Degrees per second
-        totalWinRotation = 0.0f;
-        winFlashingLights = true;
-        flashTimer = 0.0f;
-        std::cout << "\n\nYOU WIN!\n\n" << std::endl;
-        std::cout << "Enjoy the victory animation..." << std::endl;
-    }
-    
-    winTimer += deltaTime;
-    flashTimer += deltaTime;
-    
+void win_animation(
+    bool& winAnimationActive,
+    float& totalWinRotation,
+    ArtworkManager* artworkManager,
+    std::vector<float>& artworkRotations,
+    bool winFlashingLights,
+    float& flashTimer,
+    float winTimer,
+    float deltaTime
+) {
     // Victory animation: rotate all artworks simultaneously
     if (winAnimationActive) {
-        float rotationAmount = winAnimationSpeed * deltaTime;
+        float rotationAmount = 180.0f * deltaTime;
         totalWinRotation += rotationAmount;
-        
-        // Rotate all artworks
+
         for (size_t i = 0; i < artworkManager->getArtworkCount(); i++) {
             Artwork* artwork = artworkManager->getArtwork(i);
             if (artwork) {
-                // Update tracked rotation (doesn't matter for win state, but keeping consistent)
                 artworkRotations[i] += rotationAmount;
                 while (artworkRotations[i] >= 360.0f) artworkRotations[i] -= 360.0f;
-                
-                // Apply rotation animation
                 artwork->rotate(artworkRotations[i], 0.0f, 0.0f, 1.0f);
             }
         }
-        
-        // After 3 complete rotations (1080 degrees), stop the rotation animation
+
         if (totalWinRotation >= 1080.0f) {
             winAnimationActive = false;
-            
-            // Reset all artworks to perfect alignment
             for (size_t i = 0; i < artworkManager->getArtworkCount(); i++) {
                 Artwork* artwork = artworkManager->getArtwork(i);
                 if (artwork) {
@@ -904,29 +707,50 @@ void GameManager::handleWinState(float deltaTime) {
             }
         }
     }
-    
-    // Flashing light effects - modify ambient light every 0.3 seconds
+
     if (winFlashingLights && flashTimer >= 0.3f) {
         flashTimer = 0.0f;
-        
-        // Generate random light colors for victory effect
         GLfloat r = static_cast<GLfloat>(rand()) / RAND_MAX;
         GLfloat g = static_cast<GLfloat>(rand()) / RAND_MAX;
         GLfloat b = static_cast<GLfloat>(rand()) / RAND_MAX;
-        
         GLfloat ambient[] = { r, g, b, 1.0f };
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
-        
         glutPostRedisplay();
     }
-    
-    // After 5 seconds, exit the game
+
     if (winTimer >= 5.0f) {
-        // Reset lighting before exiting
         GLfloat defaultAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, defaultAmbient);
-        
         std::cout << "Game completed successfully!" << std::endl;
         exit(0);
     }
-} 
+}
+
+
+void GameManager::handleWinState(float deltaTime) {
+    if (!gameWon) return;
+
+    if (winTimer == 0.0f) {
+        winAnimationActive = true;
+        winAnimationSpeed = 180.0f;
+        totalWinRotation = 0.0f;
+        winFlashingLights = true;
+        flashTimer = 0.0f;
+        std::cout << "\n\nYOU WIN!\n\n" << std::endl;
+        std::cout << "Enjoy the victory animation..." << std::endl;
+    }
+
+    winTimer += deltaTime;
+    flashTimer += deltaTime;
+
+    win_animation(
+        winAnimationActive,
+        totalWinRotation,
+        artworkManager,
+        artworkRotations,
+        winFlashingLights,
+        flashTimer,
+        winTimer,
+        deltaTime
+    );
+}

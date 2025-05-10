@@ -1,6 +1,5 @@
 #include "Artwork.h"
-#include <cstdlib>
-#include <iostream>
+
 
 
 // Constructor with position and dimensions
@@ -155,8 +154,6 @@ void Artwork::stretchFrame(float stretchX, float stretchY) {
     frameStretchX = (stretchX < 0.1f) ? 0.1f : stretchX;
     frameStretchY = (stretchY < 0.1f) ? 0.1f : stretchY;
     
-    // If preserveAspectRatio is enabled, we need to make sure the frameImage
-    // class knows not to override our stretching
     if (frameImage) {
         frameImage->setPreserveAspectRatio(false);
     }

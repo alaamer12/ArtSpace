@@ -1,7 +1,6 @@
 #include "input.h"
-#include <cstring>
 
-// Initialize static member
+
 InputSystem* InputSystem::instance = nullptr;
 
 // Static callback functions for GLUT integration
@@ -157,12 +156,6 @@ bool InputSystem::isMouseButtonPressed(int button) {
     return (button >= 0 && button < 3) ? mouseButtonStates[button] : false;
 }
 
-// Get the current mouse position
-void InputSystem::getMousePosition(float& x, float& y) {
-    x = currentMouseX;
-    y = currentMouseY;
-}
-
 // Get the mouse movement delta since last update
 void InputSystem::getMouseDelta(float& deltaX, float& deltaY) {
     // Calculate the delta
@@ -172,14 +165,4 @@ void InputSystem::getMouseDelta(float& deltaX, float& deltaY) {
     // Reset immediately after reading to prevent continued camera movement
     lastMouseX = currentMouseX;
     lastMouseY = currentMouseY;
-}
-
-// Check if the mouse is being dragged
-bool InputSystem::getIsDragging() const {
-    return isDragging;
-}
-
-// Check if the mouse is being used for rotation
-bool InputSystem::getIsRotating() const {
-    return isRotating;
 }

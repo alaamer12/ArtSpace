@@ -1,46 +1,8 @@
-/**
- * @file camera.h
- * @brief Camera system with basic and human-like camera controls
- * 
- * This module provides camera classes for 3D OpenGL applications, offering both basic camera
- * functionality and a more sophisticated human-like camera with realistic movement physics.
- * The cameras handle position, rotation, and transformation in 3D space.
- * 
- * Main classes:
- * - Camera: Base camera class with basic positioning and rotation
- * - HumanCamera: Extended camera with realistic human movement, including head bobbing,
- *                momentum, acceleration, and smooth turning
- * 
- * Usage examples:
- * 
- * 1. Using the base Camera:
- *    Camera camera;
- *    camera.setPosition(0.0f, 1.75f, 5.0f);
- *    camera.setRotation(0.0f, 180.0f, 0.0f);
- *    
- *    // In render function:
- *    camera.update(deltaTime);
- *    camera.applyTransformation();
- * 
- * 2. Using the HumanCamera:
- *    HumanCamera humanCamera;
- *    humanCamera.setPosition(0.0f, 1.75f, 5.0f);
- *    humanCamera.adjustSensitivity(0.5f); // Reduce sensitivity
- *    
- *    // In render function:
- *    humanCamera.update(deltaTime);
- *    humanCamera.applyTransformation();
- *    
- * The camera system works with the InputSystem to process mouse and keyboard input
- * for camera movement and rotation.
- */
-
 #pragma once
 #include <GL/glut.h>
 #include <cmath>
 #include "input.h"
 
-// Define PI if it's not already defined
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -57,10 +19,8 @@ private:
 public:
     Camera();
 
-    // Main update function - responds to input system passively
     virtual void update(float deltaTime);
     
-    // Apply camera transformation to OpenGL
     void applyTransformation();
     
     // Get/set camera properties
@@ -71,14 +31,11 @@ public:
     void setRotation(float pitch, float yaw, float roll);
     void getRotation(float rot[3]) { rot[0] = rotation[0]; rot[1] = rotation[1]; rot[2] = rotation[2]; }
     
-    // Get the camera's forward looking direction
     void getLookDirection(float dir[3]) {
         // Convert rotation angles to radians
         float yawRad = rotation[1] * M_PI / 180.0f;
         float pitchRad = rotation[0] * M_PI / 180.0f;
         
-        // Calculate direction vector - this matches OpenGL's coordinate system
-        // where: -Z is forward, +X is right, +Y is up
         dir[0] = sin(yawRad) * cos(pitchRad);
         dir[1] = sin(pitchRad);
         dir[2] = -cos(yawRad) * cos(pitchRad);
@@ -88,7 +45,6 @@ public:
     float getMouseSensitivity() { return mouseSensitivity; }
 };
 
-// HumanCamera class that simulates realistic human movement
 class HumanCamera : public Camera {
 private:
     // Movement parameters
@@ -105,7 +61,6 @@ private:
     float originalHeight;
     bool isMoving;
     
-    // Momentum and smoothing
     float turnSmoothness;
     float lastYawDelta;
     float lastPitchDelta;
@@ -113,10 +68,8 @@ private:
 public:
     HumanCamera();
     
-    // Override the update method to implement human-like motion
     void update(float deltaTime) override;
     
-    // Helper methods
     void getPosition(float pos[3]);
     void getRotation(float& pitch, float& yaw, float& roll);
     

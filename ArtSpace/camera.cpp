@@ -1,6 +1,4 @@
 #include "camera.h"
-#include <cmath>
-#include <stdio.h>
 
 // Constants
 const float PI = 3.14159265358979323846f;
@@ -9,7 +7,6 @@ const float MAX_PITCH = 89.0f;  // Prevent camera flipping at 90 degrees
 const float HUMAN_CAMERA_SENSITIVITY = 0.5f;
 
 Camera::Camera() {
-    // Initialize position at eye level
     position[0] = 0.0f;  // x
     position[1] = 1.7f;  // y (eye level)
     position[2] = 0.0f;  // z
@@ -17,17 +14,14 @@ Camera::Camera() {
     // Initialize looking forward
     rotation[0] = 0.0f;  // pitch
     rotation[1] = 0.0f;  // yaw
-    rotation[2] = 0.0f;  // roll (we don't use roll in FPS camera)
+    rotation[2] = 0.0f;  // 
     
-    // Set default sensitivity - reduced from 0.2f
     mouseSensitivity = 30.3f;
 }
 
 void Camera::update(float deltaTime) {
-    // Simply get mouse motion from input system and apply to camera rotation
     InputSystem* input = InputSystem::getInstance();
     
-    // Get mouse movement
     float deltaX, deltaY;
     input->getMouseDelta(deltaX, deltaY);
     
@@ -42,7 +36,6 @@ void Camera::update(float deltaTime) {
         clampAngles();
     }
     
-    // Calculate direction vectors based on camera yaw
     float yawRadians = rotation[1] * DEG_TO_RAD;
     
     // Forward vector
@@ -118,9 +111,7 @@ void Camera::setMouseSensitivity(float sensitivity) {
     mouseSensitivity = sensitivity;
 }
 
-// HumanCamera implementation
 HumanCamera::HumanCamera() : Camera() {
-    // Initialize human movement parameters
     walkSpeed = 1.5f;         // 1.5 meters per second
     runSpeed = 4.0f;          // 4.0 meters per second
     currentSpeed = 0.0f;
@@ -143,12 +134,10 @@ HumanCamera::HumanCamera() : Camera() {
     
     isMoving = false;
     
-    // Turning smoothness (higher = smoother but less responsive)
     turnSmoothness = 0.3f;
     lastYawDelta = 0.0f;
     lastPitchDelta = 0.0f;
     
-    // Set a good default sensitivity for human camera - increased from 0.05f
     setMouseSensitivity(HUMAN_CAMERA_SENSITIVITY);
 }
 
@@ -159,11 +148,9 @@ void HumanCamera::update(float deltaTime) {
     float deltaX, deltaY;
     input->getMouseDelta(deltaX, deltaY);
     
-    // Apply sensitivity to raw input first
     deltaX *= getMouseSensitivity();
     deltaY *= getMouseSensitivity();
     
-    // Apply smoothing to camera rotation
     if (deltaX != 0.0f || deltaY != 0.0f) {
         // Reduce turnSmoothness to make sensitivity changes more noticeable
         float effectiveSmoothness = 0.15f; // Reduced from 0.3f
@@ -172,11 +159,9 @@ void HumanCamera::update(float deltaTime) {
         float smoothX = deltaX * (1.0f - effectiveSmoothness) + lastYawDelta * effectiveSmoothness;
         float smoothY = deltaY * (1.0f - effectiveSmoothness) + lastPitchDelta * effectiveSmoothness;
         
-        // Update rotation based on smoothed mouse movement
         float pitch, yaw, roll;
         getRotation(pitch, yaw, roll);
         
-        // Apply directly without multiplying by sensitivity again
         pitch += smoothY;
         yaw += smoothX;
         
@@ -218,29 +203,19 @@ void HumanCamera::update(float deltaTime) {
     // Track if we're moving for head bob
     isMoving = (currentSpeed > 0.1f);
     
-    // Calculate movement direction
     float yaw, pitch, roll;
     getRotation(pitch, yaw, roll);
     float yawRadians = yaw * DEG_TO_RAD;
-    
-    // In OpenGL, when facing -Z (yaw=0):
-    // Forward is (0,0,-1) = negative Z direction
-    // Right is (1,0,0) = positive X direction
-    
-    // Calculate direction vectors based on camera yaw
-    // Forward vector: sin(yaw) gives X, -cos(yaw) gives Z
+
     float forwardX = sin(yawRadians);
     float forwardZ = -cos(yawRadians);
     
-    // Right vector: cos(yaw) gives X, sin(yaw) gives Z
     float rightX = cos(yawRadians);
     float rightZ = sin(yawRadians);
     
-    // Reset movement direction
     float moveX = 0.0f;
     float moveZ = 0.0f;
     
-    // Combine movement from all directions
     if (input->isKeyPressed('w') || input->isKeyPressed('W')) {
         moveX += forwardX;
         moveZ += forwardZ;
@@ -284,7 +259,6 @@ void HumanCamera::update(float deltaTime) {
         
         pos[1] = originalHeight + verticalBob;
     } else {
-        // Gradually return to original height when stopped
         pos[1] = originalHeight + (pos[1] - originalHeight) * 0.8f;
         bobPhase = 0.0f;
     }
@@ -306,10 +280,4 @@ void HumanCamera::getRotation(float& pitch, float& yaw, float& roll) {
     pitch = rot[0];
     yaw = rot[1];
     roll = rot[2];
-}
-
-// Add a method to adjust sensitivity by multiplying it by a factor
-void HumanCamera::adjustSensitivity(float factor) {
-    setMouseSensitivity(getMouseSensitivity() * factor);
-    printf("Mouse sensitivity: %.2f\n", getMouseSensitivity());
 }

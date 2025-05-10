@@ -3,9 +3,9 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
-#include <functional>
 #include <fstream>
-#include <map>
+#include <iostream>
+#include <sstream>  
 
  // Forward declarations - don't include the full headers
 class Config;

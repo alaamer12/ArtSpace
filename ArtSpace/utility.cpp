@@ -1,16 +1,9 @@
-#include <SFML/Graphics.hpp>
 #include "utility.h"
-#include <GL/glut.h>
-#include <cstdio>
-#include <iostream>
-#include <ctime>
-#include <iomanip>
-#include <sstream>  // For std::stringstream
 
-// Initialize static instance for Logger
+
+
 Logger Logger::instance;
 
-// Logger implementation
 Logger::Logger()
     : consoleLogging(false)
     , fileLogging(false)

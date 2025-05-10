@@ -3,8 +3,9 @@
 #define ROOM_H
 
 #include <GL/glut.h>
-#include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 class Room {
 public:

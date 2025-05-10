@@ -3,7 +3,6 @@
 #include <string>
 #include "artwork.h"
 
-// Configuration structure for artwork placement and properties
 struct ArtworkConfig {
     // Position
     float posX = 0.0f, posY = 0.0f, posZ = 0.0f;
@@ -50,18 +49,12 @@ public:
     void removeArtwork(Artwork* artwork);
     void clear();
 
-    // Artwork access
     Artwork* getArtwork(int id);
     size_t getArtworkCount() const;
 
-    // Rendering and updates
+
     void renderAll();
     void updateAll(float deltaTime);
 
-    // Interaction
     Artwork* findNearestArtwork(const float* position, float maxDistance);
-    
-    // TODO: Add artwork loading from configuration
-    // TODO: Add artwork placement validation
-    // TODO: Add artwork grouping for puzzle sequences
 };
