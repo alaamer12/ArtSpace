@@ -12,6 +12,8 @@
 #include "room.h"
 #include "input.h"
 #include "config.h"
+#include "lever.h"
+#include "sound_manager.h"
 
 // Define artwork IDs for easy reference
 enum ArtworkID {
@@ -38,6 +40,8 @@ private:
     Room* room;
     InputSystem* inputSystem;
     ArtworkManager* artworkManager;
+    Lever* lever;
+    SoundManager* soundManager;
     float lastTime;
     
     // Array of image and frame paths
@@ -57,6 +61,13 @@ private:
     bool gameWon;
     float winTimer;
     std::vector<float> artworkRotations;
+    
+    // Win animation states
+    bool winAnimationActive;
+    float winAnimationSpeed;
+    float totalWinRotation;
+    bool winFlashingLights;
+    float flashTimer;
     
     // Constructor is private for singleton
     GameManager();
@@ -101,6 +112,7 @@ public:
     void initRoom();
     void initCamera();
     void initArtworks();
+    void initLever();
     void init();
     
     // Main game loop methods
@@ -126,6 +138,7 @@ public:
     InputSystem* getInputSystem() const { return inputSystem; }
     int getClosestArtworkID() const { return closestArtworkID; }
     float getClosestArtworkDistance() const { return closestArtworkDistance; }
+    Lever* getLever() const { return lever; }
     
     // Toggle debug mode
     void toggleDebugProximity() { debugProximity = !debugProximity; }
@@ -139,9 +152,11 @@ GameManager* GameManager::instance = nullptr;
 
 // Constructor
 GameManager::GameManager() 
-    : camera(nullptr), room(nullptr), inputSystem(nullptr), artworkManager(nullptr), lastTime(0.0f),
+    : camera(nullptr), room(nullptr), inputSystem(nullptr), artworkManager(nullptr), lever(nullptr), 
+      soundManager(nullptr), lastTime(0.0f),
       closestArtworkID(-1), closestArtworkDistance(999999.0f), debugProximity(false),
-      gameWon(false), winTimer(0.0f) {
+      gameWon(false), winTimer(0.0f),
+      winAnimationActive(false), winAnimationSpeed(0.0f), totalWinRotation(0.0f), winFlashingLights(false), flashTimer(0.0f) {
     // Initialize arrays
     imageID = new std::string[ARTWORK_COUNT];
     frameID = new std::string[ARTWORK_COUNT];
@@ -433,6 +448,16 @@ void GameManager::initArtworks() {
     }
 }
 
+void GameManager::initLever() {
+    float leverX = -15.0f;
+    float leverY = 1.0f; 
+    float leverZ = 0.0f; 
+    
+    lever = new Lever(leverX, leverY, leverZ, 0.5f);
+    
+    std::cout << "Initialized lever on West wall" << std::endl;
+}
+
 // Main initialization
 void GameManager::init() {
     // Get input system instance
@@ -456,8 +481,19 @@ void GameManager::init() {
     // Initialize artworks
     initArtworks();
     
+    // Initialize lever
+    initLever();
+    
     // Initialize lastTime
     lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    
+    // Initialize sound manager
+    soundManager = SoundManager::getInstance();
+    if (!soundManager->init()) {
+        std::cerr << "Failed to initialize sound manager!" << std::endl;
+    }
+    // Play the start game sound
+    soundManager->playGameStartSound();
     
     // Print controls
     printControls();
@@ -478,8 +514,6 @@ float GameManager::getDeltaTime() {
 
 // Update game state
 void GameManager::update(float deltaTime) {
-    // Update input system
-    inputSystem->update();
     
     // Update camera
     camera->update(deltaTime);
@@ -507,6 +541,11 @@ void GameManager::update(float deltaTime) {
     // Update closest artwork tracking
     updateClosestArtwork();
     
+    // Update lever animation
+    if (lever) {
+        lever->update(deltaTime);
+    }
+    
     // Handle win state if game is won
     if (gameWon) {
         handleWinState(deltaTime);
@@ -531,12 +570,43 @@ void GameManager::render() {
     
     // Render all artworks
     artworkManager->renderAll();
+    
+    // Render lever
+    if (lever) {
+        lever->render();
+    }
 }
 
 // Handle key press
 void GameManager::handleKeyPress(unsigned char key, int x, int y) {
     // First pass the key to the input system for movement handling
     inputSystem->handleKeyPress(key, x, y);
+    
+    // Handle spacebar for lever activation and sound
+    if (key == ' ') {
+        if (lever) {
+            // Check if the win condition is met
+            bool winConditionMet = checkWinCondition();
+            
+            // Activate the lever with the current win condition
+            lever->activate(winConditionMet);
+            
+            // Play appropriate sound effect
+            if (winConditionMet) {
+                // User has won
+                std::cout << "Correct answer! All artworks are aligned properly." << std::endl;
+                soundManager->playGameOverSound();
+                gameWon = true;
+                winTimer = 0.0f;
+            } else {
+                // User has not won
+                std::cout << "Incorrect! Not all artworks are aligned properly." << std::endl;
+                soundManager->playWrongSound();
+            }
+            glutPostRedisplay();
+        }
+        return;
+    }
     
     // Artwork rotation keys
     if (key == 'k') {
@@ -666,8 +736,15 @@ void GameManager::printControls() {
     std::cout << "  k - Rotate closest artwork counterclockwise by 15 degrees" << std::endl;
     std::cout << "  l - Rotate closest artwork clockwise by 15 degrees" << std::endl;
     std::cout << std::endl;
+    std::cout << "Lever Controls:" << std::endl;
+    std::cout << "  SPACEBAR - Activate the lever to check if all artworks are aligned" << std::endl;
+    std::cout << "             Bulb 1 will always turn green when lever is activated" << std::endl;
+    std::cout << "             Bulb 2 will turn green if you've won (all artworks at 0°)" << std::endl;
+    std::cout << "             Bulb 2 will turn temporarily red if answer is incorrect" << std::endl;
+    std::cout << std::endl;
     std::cout << "Win Condition:" << std::endl;
     std::cout << "  Rotate all artworks to be vertical (0 degrees rotation)" << std::endl;
+    std::cout << "  Press SPACEBAR to check your answer once you think you're done" << std::endl;
     std::cout << std::endl;
     std::cout << "Stretching Controls (closest artwork):" << std::endl;
     std::cout << "  x/X - Increase/decrease image width" << std::endl;
@@ -696,6 +773,12 @@ void GameManager::cleanup() {
     if (room) {
         delete room;
         room = nullptr;
+    }
+    
+    // Clean up lever
+    if (lever) {
+        delete lever;
+        lever = nullptr;
     }
     
     // Clear the tracking vectors
@@ -739,14 +822,6 @@ void GameManager::rotateClosestArtwork(float angle) {
             
             std::cout << "Rotated " << getArtworkName(closestArtworkID) << " by " << angle 
                     << " degrees to " << artworkRotations[artworkIndex] << " degrees" << std::endl;
-            
-            // Check if win condition is met
-            if (checkWinCondition()) {
-                gameWon = true;
-                winTimer = 0.0f;
-                std::cout << "\n\nYOU WIN!\n\n" << std::endl;
-                std::cout << "All artworks are now properly aligned. Closing in 3 seconds..." << std::endl;
-            }
         }
     }
 }
@@ -771,10 +846,74 @@ bool GameManager::checkWinCondition() {
 void GameManager::handleWinState(float deltaTime) {
     if (!gameWon) return;
     
-    winTimer += deltaTime;
+    // Initialize win animation on first frame
+    if (winTimer == 0.0f) {
+        winAnimationActive = true;
+        winAnimationSpeed = 180.0f; // Degrees per second
+        totalWinRotation = 0.0f;
+        winFlashingLights = true;
+        flashTimer = 0.0f;
+        std::cout << "\n\nYOU WIN!\n\n" << std::endl;
+        std::cout << "Enjoy the victory animation..." << std::endl;
+    }
     
-    // After 3 seconds, exit the game
-    if (winTimer >= 3.0f) {
+    winTimer += deltaTime;
+    flashTimer += deltaTime;
+    
+    // Victory animation: rotate all artworks simultaneously
+    if (winAnimationActive) {
+        float rotationAmount = winAnimationSpeed * deltaTime;
+        totalWinRotation += rotationAmount;
+        
+        // Rotate all artworks
+        for (size_t i = 0; i < artworkManager->getArtworkCount(); i++) {
+            Artwork* artwork = artworkManager->getArtwork(i);
+            if (artwork) {
+                // Update tracked rotation (doesn't matter for win state, but keeping consistent)
+                artworkRotations[i] += rotationAmount;
+                while (artworkRotations[i] >= 360.0f) artworkRotations[i] -= 360.0f;
+                
+                // Apply rotation animation
+                artwork->rotate(artworkRotations[i], 0.0f, 0.0f, 1.0f);
+            }
+        }
+        
+        // After 3 complete rotations (1080 degrees), stop the rotation animation
+        if (totalWinRotation >= 1080.0f) {
+            winAnimationActive = false;
+            
+            // Reset all artworks to perfect alignment
+            for (size_t i = 0; i < artworkManager->getArtworkCount(); i++) {
+                Artwork* artwork = artworkManager->getArtwork(i);
+                if (artwork) {
+                    artworkRotations[i] = 0.0f;
+                    artwork->rotate(0.0f, 0.0f, 0.0f, 1.0f);
+                }
+            }
+        }
+    }
+    
+    // Flashing light effects - modify ambient light every 0.3 seconds
+    if (winFlashingLights && flashTimer >= 0.3f) {
+        flashTimer = 0.0f;
+        
+        // Generate random light colors for victory effect
+        GLfloat r = static_cast<GLfloat>(rand()) / RAND_MAX;
+        GLfloat g = static_cast<GLfloat>(rand()) / RAND_MAX;
+        GLfloat b = static_cast<GLfloat>(rand()) / RAND_MAX;
+        
+        GLfloat ambient[] = { r, g, b, 1.0f };
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+        
+        glutPostRedisplay();
+    }
+    
+    // After 5 seconds, exit the game
+    if (winTimer >= 5.0f) {
+        // Reset lighting before exiting
+        GLfloat defaultAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, defaultAmbient);
+        
         std::cout << "Game completed successfully!" << std::endl;
         exit(0);
     }

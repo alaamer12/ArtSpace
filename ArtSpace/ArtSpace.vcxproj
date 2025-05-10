@@ -37,6 +37,7 @@
     <ClInclude Include="input.h" />
     <ClInclude Include="lever.h" />
     <ClInclude Include="room.h" />
+    <ClInclude Include="sound_manager.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

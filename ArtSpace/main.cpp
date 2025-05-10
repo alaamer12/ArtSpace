@@ -46,12 +46,8 @@ void idle() {
 void keyboard(unsigned char key, int x, int y) {
     if (key == 27) { // ESC key
         cleanup();
-        cleanup();
         exit(0);
     }
-    
-    // Forward to game manager
-    GameManager::getInstance()->handleKeyPress(key, x, y);
     
     // Forward to game manager
     GameManager::getInstance()->handleKeyPress(key, x, y);
@@ -83,7 +79,6 @@ void mouseButton(int button, int state, int x, int y) {
 
 
 void cleanup() {
-
     delete GameManager::getInstance();
 }
 
@@ -108,9 +103,8 @@ int main(int argc, char** argv) {
     glutIdleFunc(idle);
     glutKeyboardFunc(keyboard);
     glutKeyboardUpFunc(keyboardUp);
-    glutMotionFunc(mouseMotion);
-    glutPassiveMotionFunc(mouseMotion);
-    glutMouseFunc(mouseButton);
+    glutSpecialFunc(specialKeyboard);
+    glutSpecialUpFunc(specialKeyboardUp);
     glutMotionFunc(mouseMotion);
     glutPassiveMotionFunc(mouseMotion);
     glutMouseFunc(mouseButton);
