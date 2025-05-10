@@ -380,7 +380,7 @@ void GameManager::initRoom() {
 
     std::string wallTexturePath = basePath4T + "wall4.bmp";
     std::string floorTexturePath = basePath4T + "floor3.bmp";
-    std::string roofTexturePath = basePath4T + "wall4.bmp";
+    std::string roofTexturePath = basePath4T + "wall5.bmp";
 
     room->setWallTexture(wallTexturePath);
     room->setFloorTexture(floorTexturePath);
