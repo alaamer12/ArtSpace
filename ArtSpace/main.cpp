@@ -60,12 +60,12 @@ void keyboardUp(unsigned char key, int x, int y) {
 
 
 void specialKeyboard(int key, int x, int y) {
-
+    GameManager::getInstance()->handleSpecialKeyPress(key, x, y);
 }
 
 
 void specialKeyboardUp(int key, int x, int y) {
-
+    GameManager::getInstance()->handleSpecialKeyRelease(key, x, y);
 }
 
 

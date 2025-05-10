@@ -122,6 +122,8 @@ public:
     // Input handling
     void handleKeyPress(unsigned char key, int x, int y);
     void handleKeyRelease(unsigned char key, int x, int y);
+    void handleSpecialKeyPress(int key, int x, int y);
+    void handleSpecialKeyRelease(int key, int x, int y);
     void handleMouseMotion(int x, int y);
     void handleMouseButton(int button, int state, int x, int y);
     
@@ -710,6 +712,16 @@ void GameManager::handleKeyPress(unsigned char key, int x, int y) {
 // Handle key release
 void GameManager::handleKeyRelease(unsigned char key, int x, int y) {
     inputSystem->handleKeyRelease(key, x, y);
+}
+
+// Handle special key press
+void GameManager::handleSpecialKeyPress(int key, int x, int y) {
+    inputSystem->handleSpecialKeyPress(key, x, y);
+}
+
+// Handle special key release
+void GameManager::handleSpecialKeyRelease(int key, int x, int y) {
+    inputSystem->handleSpecialKeyRelease(key, x, y);
 }
 
 // Handle mouse motion
