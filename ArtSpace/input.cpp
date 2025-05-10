@@ -136,13 +136,6 @@ void InputSystem::handlePassiveMouseMotion(int x, int y) {
     currentMouseY = static_cast<float>(y);
 }
 
-// Update method to be called each frame
-void InputSystem::update() {
-    // Any per-frame logic can go here
-    
-    // Mouse delta is now reset in getMouseDelta() method
-}
-
 // Check if a key is currently pressed
 bool InputSystem::isKeyPressed(unsigned char key) {
     return keyStates[key];
